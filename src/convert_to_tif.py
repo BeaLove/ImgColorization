@@ -13,7 +13,7 @@ https://stackoverflow.com/questions/52767317/how-to-convert-rgb-image-pixels-to-
 
 
 def convert_to_tif():
-	root = os.path.dirname(os.path.abspath(__file__)) + '/'
+	root = os.path.dirname(os.path.abspath(__file__)).replace('\\\\', '/') + '/'
 	os.makedirs(root + '../dataset/train_tif/', exist_ok = True)
 	os.makedirs(root + '../dataset/val_tif/', exist_ok = True)
 	os.makedirs(root +'../dataset/test_tif/', exist_ok = True)
