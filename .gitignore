@@ -1,0 +1,20 @@
+# Mac
+.DS_Store
+
+# Dataset folders
+/dataset/test/
+/dataset/train/
+/dataset/val/
+
+# Dataset files
+wnids.txt
+words.txt
+
+# VS_code
+__pycache__/
+.vscode/
+
+# tex
+*.log
+*.aux
+*.synctex.*
