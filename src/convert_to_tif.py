@@ -29,8 +29,7 @@ def convert_to_tif():
 		for pic in tqdm(pic_list):
 			with Image.open(pic).convert('RGB') as im:
 				tif_img = ImageCms.applyTransform(im, rgb_to_lab)
-
-				word = str(pic).split('/')[2]
+				word = str(pic).split('/')[2] if os.name != 'nt' else str(pic).split('\\\\')[2]
 				save_path = str(pic).replace(word+'/' , word + '_tif/')
 				save_path = save_path.replace('.JPEG', '.TIF')
 				save_path_dir = ''.join([w+'/' for w in save_path.split('/')[:-1]])
