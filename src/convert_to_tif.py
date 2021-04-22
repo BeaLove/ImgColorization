@@ -14,7 +14,7 @@ https://stackoverflow.com/questions/52767317/how-to-convert-rgb-image-pixels-to-
 
 def convert_to_tif():
 	os.makedirs('../dataset/train_tif/', exist_ok = True)
-	os.makedirs('../dataset/validation_tif/', exist_ok = True)
+	os.makedirs('../dataset/val_tif/', exist_ok = True)
 	os.makedirs('../dataset/test_tif/', exist_ok = True)
 	paths = ['../dataset/test/', '../dataset/val/', '../dataset/train/']
 	
