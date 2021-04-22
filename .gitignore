@@ -16,6 +16,10 @@
 wnids.txt
 words.txt
 
+# Just to be on the safe side
+*.JPEG
+*.TIF
+
 # VS_code
 __pycache__/
 .vscode/
