@@ -30,8 +30,13 @@ def convert_to_tif():
 		for pic in tqdm(pic_list):
 			with Image.open(pic).convert('RGB') as im:
 				tif_img = ImageCms.applyTransform(im, rgb_to_lab)
-				word = str(pic).replace(root, '').split('/')[2] if os.name != 'nt' else str(pic).replace(root, '').split('\\\\')[2]
-				save_path = str(pic).replace(word+'/' , word + '_tif/')
+				pic_str = str(pic)
+				
+				if os.name == 'nt': # If windows
+					pic_str.replace('\\\\', '/')
+
+				word = pic_str.replace(root, '').split('/')[2]
+				save_path = pic_str.replace(word+'/' , word + '_tif/')
 				save_path = save_path.replace('.JPEG', '.TIF')
 				save_path_dir = ''.join([w+'/' for w in save_path.split('/')[:-1]])
 				os.makedirs(save_path_dir, exist_ok = True)
