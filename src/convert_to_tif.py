@@ -17,7 +17,7 @@ def convert_to_tif():
 	os.makedirs(root + '../dataset/train_tif/', exist_ok = True)
 	os.makedirs(root + '../dataset/val_tif/', exist_ok = True)
 	os.makedirs(root +'../dataset/test_tif/', exist_ok = True)
-	paths = [root + '../dataset/test/', '../dataset/val/', '../dataset/train/']
+	paths = [root + '../dataset/test/', root + '../dataset/val/', root + '../dataset/train/']
 	
 	for path in paths:
 		path = Path(path)
@@ -31,7 +31,6 @@ def convert_to_tif():
 			with Image.open(pic).convert('RGB') as im:
 				tif_img = ImageCms.applyTransform(im, rgb_to_lab)
 				word = str(pic).replace(root, '').split('/')[2] if os.name != 'nt' else str(pic).replace(root, '').split('\\\\')[2]
-				print(word)
 				save_path = str(pic).replace(word+'/' , word + '_tif/')
 				save_path = save_path.replace('.JPEG', '.TIF')
 				save_path_dir = ''.join([w+'/' for w in save_path.split('/')[:-1]])
