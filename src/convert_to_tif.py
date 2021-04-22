@@ -8,6 +8,9 @@ import os
 Extract the dataset (folders test, train, val) and place them into folder dataset.
 Then run this script to convert the .JPEG images to .TIF images.
 
+Call this function in a terminal rooted in src/ folder otherwise no cigar.
+Since the paths assumes your terminals pwd is at */IMGCOLORIZATION/src
+
 https://stackoverflow.com/questions/52767317/how-to-convert-rgb-image-pixels-to-lab/53353542#53353542
 """
 
