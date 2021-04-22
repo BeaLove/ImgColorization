@@ -6,6 +6,12 @@
 /dataset/train/
 /dataset/val/
 
+# Folders after conversion
+/dataset/train_tif/
+/dataset/test_tif/
+/dataset/val_tif/
+
+
 # Dataset files
 wnids.txt
 words.txt
