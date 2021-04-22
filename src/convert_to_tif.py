@@ -8,18 +8,16 @@ import os
 Extract the dataset (folders test, train, val) and place them into folder dataset.
 Then run this script to convert the .JPEG images to .TIF images.
 
-Call this function in a terminal rooted in src/ folder otherwise no cigar.
-Since the paths assumes your terminals pwd is at */IMGCOLORIZATION/src
-
 https://stackoverflow.com/questions/52767317/how-to-convert-rgb-image-pixels-to-lab/53353542#53353542
 """
 
 
 def convert_to_tif():
-	os.makedirs('../dataset/train_tif/', exist_ok = True)
-	os.makedirs('../dataset/val_tif/', exist_ok = True)
-	os.makedirs('../dataset/test_tif/', exist_ok = True)
-	paths = ['../dataset/test/', '../dataset/val/', '../dataset/train/']
+	root = os.path.dirname(os.path.abspath(__file__)) + '/'
+	os.makedirs(root + '../dataset/train_tif/', exist_ok = True)
+	os.makedirs(root + '../dataset/val_tif/', exist_ok = True)
+	os.makedirs(root +'../dataset/test_tif/', exist_ok = True)
+	paths = [root + '../dataset/test/', '../dataset/val/', '../dataset/train/']
 	
 	for path in paths:
 		path = Path(path)
@@ -32,7 +30,8 @@ def convert_to_tif():
 		for pic in tqdm(pic_list):
 			with Image.open(pic).convert('RGB') as im:
 				tif_img = ImageCms.applyTransform(im, rgb_to_lab)
-				word = str(pic).split('/')[2] if os.name != 'nt' else str(pic).split('\\\\')[2]
+				word = str(pic).replace(root, '').split('/')[2] if os.name != 'nt' else str(pic).replace(root, '').split('\\\\')[2]
+				print(word)
 				save_path = str(pic).replace(word+'/' , word + '_tif/')
 				save_path = save_path.replace('.JPEG', '.TIF')
 				save_path_dir = ''.join([w+'/' for w in save_path.split('/')[:-1]])
