@@ -16,15 +16,23 @@ class Dataset(torch.utils.data.Dataset):
 	def __len__(self):
 		return len(self.dataset)
 
-paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
-paths = list(map(Path, paths))
+    
+    
+def prepare(set_spec):
+    X = list(set_spec.glob('**/*.TIF'))
 
-dataset = {}
-dataset['test'], dataset['train'], dataset['validation'] = paths
+    dataset_train = Dataset(X)
 
-X_test = list(dataset['test'].glob('**/*.TIF'))
+    train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=25, num_workers=0, shuffle=True)
+    
+    return train_loader
 
-dataset_train = Dataset(X_test)
+    
+def return_loaders():
+    paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
+    paths = list(map(Path, paths))
 
-train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=25, num_workers=0, shuffle=True)
-x, y = next(iter(train_loader))
+    dataset = {}
+    dataset['test'], dataset['train'], dataset['validation'] = map(prepare, paths)
+    
+    return dataset
