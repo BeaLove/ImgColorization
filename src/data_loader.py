@@ -9,8 +9,9 @@ class Dataset(torch.utils.data.Dataset):
 
 	def __getitem__(self, i):
 		im = Image.open(self.dataset[i])
-		im = np.array(im)
+		im = np.array(im, dtype = np.float32)
 		X, y = im[:,:,0], im[:,:,1:]
+		X, y = X/255, y/255
 		return X, y
 		
 	def __len__(self):

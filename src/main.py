@@ -106,12 +106,21 @@ class Colorization_model(pl.LightningModule):
 		self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear')
 
 
-	def forward(self, x):
-		#forward
-		return 0
+	def forward(self, X):
+		conv1_2 = self.model1(X)
+		conv2_2 = self.model2(conv1_2)
+		conv3_3 = self.model3(conv2_2)
+		conv4_3 = self.model4(conv3_3)
+		conv5_3 = self.model5(conv4_3)
+		conv6_3 = self.model6(conv5_3)
+		conv7_3 = self.model7(conv6_3)
+		conv8_3 = self.model8(conv7_3)
+		out_reg = self.model_out(self.softmax(conv8_3))
+		return out_reg
 
 	def training_step(self, batch, batch_idx):
-		pass
+		X, y = batch
+		self.forward(X)
 	
 #     def validation_step(self,batch,batch_idx):
 		
