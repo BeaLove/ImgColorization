@@ -21,13 +21,12 @@ class Dataset(torch.utils.data.Dataset):
 def prepare(set_spec):
     X = list(set_spec.glob('**/*.TIF'))
 
-    dataset_train = Dataset(X)
+    dataset = Dataset(X)
 
-    train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=25, num_workers=0, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=25, num_workers=0, shuffle=True)
     
     return train_loader
 
-    
 def return_loaders():
     paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
     paths = list(map(Path, paths))
