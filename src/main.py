@@ -21,11 +21,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
 opt = parser.parse_args()
 
-
+"""
+ Code found from: https://github.com/richzhang/colorization
+"""
 
 
 class Colorization_model(pl.LightningModule):
-
 	def __init__(self, norm_layer=nn.BatchNorm2d):
 		super(Colorization_model, self).__init__()
 		self.data_loaders = dl.return_loaders()
@@ -122,7 +123,6 @@ class Colorization_model(pl.LightningModule):
 	# @pl.data_loader
 	def train_dataloader(self):
 		return self.data_loaders['train']
-
 
 	# @pl.data_loader
 	def test_dataloader(self):
