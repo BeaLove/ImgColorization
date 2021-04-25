@@ -17,8 +17,6 @@ class Dataset(torch.utils.data.Dataset):
 	def __len__(self):
 		return len(self.dataset)
 
-    
-    
 def prepare(set_spec):
     X = list(set_spec.glob('**/*.TIF'))
 
