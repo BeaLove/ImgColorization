@@ -136,6 +136,9 @@ class Colorization_model(pl.LightningModule):
 	# @pl.data_loader
 	def test_dataloader(self):
 		return self.data_loaders['test']
+	
+	def val_dataloader(self):
+		return self.data_loaders['validation']
 
 	def configure_optimizers(self):
 		# Dummy optimizer for testing
