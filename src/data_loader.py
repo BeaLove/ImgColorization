@@ -4,16 +4,23 @@ from functools import partial
 from PIL import Image
 import numpy as np
 
+'''don't reinvent the wheel!'''
 class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset):
 		self.dataset = dataset
 
+
+
 	def __getitem__(self, i):
 		im = Image.open(self.dataset[i])
 		im = np.array(im, dtype = np.float32)
-		X, y = im[:,:,0], im[:,:,1:]
-		X, y = X/255, y/255 # Should we normalize it like this here?
-		return X, y
+		X, Y = im[:,:,0], im[:,:,1:]
+		'''zip Y together as tuple (a,b) values'''
+		'''histogram of (a,b) values'''
+		'''5-nearest neighbors encoding 
+		with gaussian kernel sigma=5 (scipy?)'''
+		X, Y = X, Y
+		return X, Y
 		
 	def __len__(self):
 		return len(self.dataset)
