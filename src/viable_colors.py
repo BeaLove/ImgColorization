@@ -38,9 +38,12 @@ def getLabBinKernels():
 def skLearnRGBtoLab(points):
     '''expects a 3d array W*H*3 channels'''
     lab = color.rgb2lab(points)
+    l, a, b = lab[:, :, 0], lab[:,:, 1], lab[:,:,2]
+    plt.imshow(l)
+    plt.show()
     return lab.reshape(4096*4096,3)
 
-def getKNearestBins(points, bins, k=5):
+'''def getKNearestBins(points, bins, k=5):
     nearest_points = []
     bin_idx = []
     for point in points:
@@ -49,7 +52,7 @@ def getKNearestBins(points, bins, k=5):
         nearest_bins = bins[idx]
         bin_idx.append(idx)
         nearest_points.append(nearest_bins)
-    return nearest_points, bin_idx
+    return nearest_points, bin_idx'''
 
 def countUnique(points):
     bins = np.unique(points)
@@ -61,11 +64,12 @@ all_colors = getAllRGB()
 print('got all colors')
 
 lab_colors = skLearnRGBtoLab(all_colors)
-frame = pd.DataFrame(lab_colors)
+a,b = lab_colors[:, 1], lab_colors[:, 2]
+#frame = pd.DataFrame(lab_colors)
+H, xedges, yedges = np.histogram2d(a, b, bins=np.arange(-115, 125, 10))
+#ab_vals = frame[[0 == 50/110], 1:]
 
-ab_vals = frame[[0 == 50/110], 1:]
-
-lab_colors = np.asarray(ab_vals)
+#lab_colors = np.asarray(ab_vals)
 
 #lab_colors = np.loadtxt('lab_colors.csv', delimiter=',',dtype=float)
 #lab_colors.tofile('lab_colors.csv', sep=',')

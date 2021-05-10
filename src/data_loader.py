@@ -14,7 +14,6 @@ class Dataset(torch.utils.data.Dataset):
 		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/110)
 
 
-
 	def __getitem__(self, i):
 		im = Image.open(self.dataset[i])
 		im = np.array(im, dtype = np.float32)
@@ -24,19 +23,25 @@ class Dataset(torch.utils.data.Dataset):
 		'''5-nearest neighbors encoding 
 		with gaussian kernel sigma=5 (scipy?)'''
 		X, Y = X, Y
+		Y = self.softEncoding(Y, sigma=5)
 		return X, Y
 		
 	def __len__(self):
 		return len(self.dataset)
 
-	def softEncoding(self, targets, sigma=5):
-		dist, indices = knn.kneighbors(targets)
+	def softEncoding(self, pixels, sigma=5):
+		dist, indices = knn.kneighbors(pixels.reshape(pixels.shape[0] * pixels.shape[1], 2))
 		weights = np.exp(-(dist ** 2) / 2 * sigma ** 2)
 		weights = weights / np.sum(weights, axis=1, keepdims=True)
 		'''check weights sum to 1'''
-		sum_ = np.sum(weights, axis=1, keepdims=True)
-		target_vector = np.zeros((10, 313))
-		target_vector[:, indices] = weights
+		#sum_ = np.sum(weights, axis=1, keepdims=True)
+		target_vector = np.zeros((100, 313))
+		for i in range(len(weights)):
+			target_vector[i, indices[i]] = weights[i]
+		#test_sum = np.sum(target_vector, axis=1)
+		target_vector = target_vector.reshape(10, 10, 313)
+		#test_sum2 = np.sum(target_vector, axis=2)
+		return target_vector
 
 def prepare(set_spec, params):
 	''' params = (batch_size, num_workers, shuffle) '''
