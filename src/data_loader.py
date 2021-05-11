@@ -51,7 +51,7 @@ class Dataset(torch.utils.data.Dataset):
 
 def prepare(set_spec, params):
 	''' params = (batch_size, num_workers, shuffle) '''
-	X = list(set_spec.glob('**/*.TIF'))
+	X = list(set_spec.glob('**/*.JPEG'))
 
 	dataset = Dataset(X)
 
