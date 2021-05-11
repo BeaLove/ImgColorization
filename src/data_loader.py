@@ -11,13 +11,13 @@ class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset):
 		self.dataset = dataset
 		self.kernels = POINTS_IN_HULL
-		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/110)
+		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels)
 
 
 	def __getitem__(self, i):
 		im = Image.open(self.dataset[i])
 		im = np.array(im, dtype = np.float32)
-		X, Y = im[:,:,0], im[:,:,1:]
+		X, Y = im[:,:,0]/255*100, im[:,:,1:]-127
 		'''zip Y together as tuple (a,b) values'''
 		'''histogram of (a,b) values'''
 		'''5-nearest neighbors encoding 
@@ -61,7 +61,7 @@ def prepare(set_spec, params):
 	return train_loader
 
 def return_loaders(batch_size = 25, num_workers = 0, shuffle = True):
-	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
+	paths = ['../dataset/test', '../dataset/train', '../dataset/val']
 	paths = map(Path, paths)
 
 	dataset = {}
