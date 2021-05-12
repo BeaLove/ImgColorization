@@ -1,29 +1,46 @@
 import torch
 from pathlib import Path
 from functools import partial
+
+import torchvision.transforms
 from PIL import Image
 import numpy as np
 import sklearn.neighbors as knn
+from skimage import io
+import matplotlib.pyplot as plt
+from torchvision import datasets, transforms
 
 POINTS_IN_HULL = np.load('pts_in_hull (1).npy')
 '''don't reinvent the wheel!'''
 class Dataset(torch.utils.data.Dataset):
-	def __init__(self, dataset):
+	def __init__(self, dataset, soft_encoding = True):
 		self.dataset = dataset
 		self.kernels = POINTS_IN_HULL
-		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels)
+		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/110)
+		self.soft_encoding = soft_encoding
 
 
 	def __getitem__(self, i):
 		im = Image.open(self.dataset[i])
-		im = np.array(im, dtype = np.float32)
+		#im = io.imread(i)
+		#im.show()
+		#im = torchvision.transforms.ToTensor()(im)
+		#im = torch.tensor(im, dtype=)
+		im = np.array(im, dtype = np.float64)
 		X, Y = im[:,:,0]/255*100, im[:,:,1:]-127
-		'''zip Y together as tuple (a,b) values'''
-		'''histogram of (a,b) values'''
-		'''5-nearest neighbors encoding 
-		with gaussian kernel sigma=5 (scipy?)'''
-		X, Y = X, Y
-		Y = self.softEncoding(Y, sigma=5)
+		X = torch.tensor(X, dtype=torch.float64)
+		'''plt.imshow(X)
+		plt.show()
+		plt.imshow(Y[1,:,:])
+		plt.show()'''
+		#transforms.ToPILImage()(X).show()
+		#transforms.ToPILImage()(Y[1,:,:]).show()
+		'''return X, Y as tensors'''
+		#X, Y = X, Y
+		if self.soft_encoding:
+			Y = torch.tensor(self.softEncoding(Y, sigma=5))
+		else:
+			Y = torch.tensor(Y)
 		return X, Y
 		
 	def __len__(self):
@@ -36,25 +53,26 @@ class Dataset(torch.utils.data.Dataset):
 			returns: soft-encoded target matrix H*W*313'''
 		w = pixels.shape[0]
 		h = pixels.shape[1] #height of an image is
-		dist, indices = knn.kneighbors(pixels.reshape(h*w, 2))
+		dist, indices = self.neighborhood.kneighbors(pixels.reshape(h*w, 2)/110)
 		weights = np.exp(-(dist ** 2) / 2 * sigma ** 2)
 		weights = weights / np.sum(weights, axis=1, keepdims=True)
 		'''check weights sum to 1'''
-		#sum_ = np.sum(weights, axis=1, keepdims=True)
+		sum_ = np.sum(weights, axis=1, keepdims=True)
 		target_vector = np.zeros((h*w, 313))
 		for i in range(len(weights)):
 			target_vector[i, indices[i]] = weights[i]
-		#test_sum = np.sum(target_vector, axis=1)
+		test_sum = np.sum(target_vector, axis=1)
 		target_vector = target_vector.reshape(w, h, 313)
-		#test_sum2 = np.sum(target_vector, axis=2)
+		test_sum2 = np.sum(target_vector, axis=2)
 		return target_vector
 
 def prepare(set_spec, params):
 	''' params = (batch_size, num_workers, shuffle) '''
-	X = list(set_spec.glob('**/*.TIF'))
+	X = list(set_spec.glob('**/*.JPEG'))
 
 	dataset = Dataset(X)
-
+	'''test code for soft encoding'''
+	#dataset.__getitem__(0)
 	batch_size, num_workers, shuffle = params
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
 	
@@ -69,3 +87,9 @@ def return_loaders(batch_size = 25, num_workers = 0, shuffle = True):
 	dataset['test'], dataset['train'], dataset['validation'] = map(prepare_partial, paths)
 	
 	return dataset
+
+'''test code for soft encoding'''
+dataset = return_loaders()
+
+
+

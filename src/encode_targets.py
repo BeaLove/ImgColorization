@@ -1,5 +1,6 @@
 import numpy as np
 import sklearn.neighbors as neighbors
+import torch
 kernels = np.load('pts_in_hull (1).npy')
 print(kernels)
 '''load of test code!!!'''
@@ -13,8 +14,10 @@ test2 = np.array([np.arange(10) for i in range(10)])
 print(test)
 test = test[:,:,np.newaxis]
 test2 = test2[:,:,np.newaxis]
-test = np.concatenate((test, test2), axis=2)
-print(test)
+test = torch.tensor(np.concatenate((test, test2), axis=2))
+result = torch.matmul(test, test)
+#result2 = np.dot(test, test)
+print(result)
 flat = test.reshape(10*10,2)
 reshaped = flat.reshape(10,10,2)
 def softEncoding(pixels, knn, sigma=5):
