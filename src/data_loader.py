@@ -68,7 +68,7 @@ class Dataset(torch.utils.data.Dataset):
 
 def prepare(set_spec, params):
 	''' params = (batch_size, num_workers, shuffle) '''
-	X = list(set_spec.glob('**/*.JPEG'))
+	X = list(set_spec.glob('**/*.TIF'))
 
 	dataset = Dataset(X)
 	'''test code for soft encoding'''
@@ -79,7 +79,7 @@ def prepare(set_spec, params):
 	return train_loader
 
 def return_loaders(batch_size = 25, num_workers = 0, shuffle = True):
-	paths = ['../dataset/test', '../dataset/train', '../dataset/val']
+	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
 
 	dataset = {}
