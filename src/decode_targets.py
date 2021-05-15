@@ -52,6 +52,6 @@ if __name__ == '__main__':
 	a, b = decode_targets(Y, args = 'mode')
 	L = X.detach().cpu().numpy().reshape(64, 64)
 
-	im_raw = util.load_image_raw(path, resize = True)/255
+	im_raw = util.load_image_raw(path, resize = True)
 	im_decoded = util.stich_image(L, a, b)
 	# im_decoded = util.data2lab(im_decoded)
