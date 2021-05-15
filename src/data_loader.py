@@ -2,23 +2,26 @@ import torch
 from pathlib import Path
 from functools import partial
 
-import torchvision.transforms
+
 from PIL import Image
 import numpy as np
 import sklearn.neighbors as knn
 from skimage import io
 import matplotlib.pyplot as plt
-from torchvision import datasets, transforms
+
 '''import loss to debug'''
 from loss import RarityWeightedLoss, PRIOR_PROBS
 
-POINTS_IN_HULL = np.load('pts_in_hull (1).npy')
+POINTS_IN_HULL = np.load('authors_pts_in_hull.npy')
+bins_centers = np.load('bin_centers.npy')
 '''don't reinvent the wheel!'''
 class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset, soft_encoding = True):
 		self.dataset = dataset
-		self.kernels = POINTS_IN_HULL
-		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/110)
+		self.kernels = bins_centers
+		self.kernel_normalize = np.max(np.abs(self.kernels))
+		self.num_bins = len(self.kernels)
+		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/self.kernel_normalize)
 		self.soft_encoding = soft_encoding
 
 
@@ -59,16 +62,16 @@ class Dataset(torch.utils.data.Dataset):
 			returns: soft-encoded target matrix H*W*313'''
 		w = pixels.shape[0]
 		h = pixels.shape[1] #height of an image is
-		dist, indices = self.neighborhood.kneighbors(pixels.reshape(h*w, 2)/110)
+		dist, indices = self.neighborhood.kneighbors(pixels.reshape(h*w, 2)/self.kernel_normalize)
 		weights = np.exp(-(dist ** 2) / 2 * sigma ** 2)
 		weights = weights / np.sum(weights, axis=1, keepdims=True)
 		'''check weights sum to 1'''
 		sum_ = np.sum(weights, axis=1, keepdims=True)
-		target_vector = np.zeros((h*w, 313))
+		target_vector = np.zeros((h*w, self.num_bins))
 		for i in range(len(weights)):
 			target_vector[i, indices[i]] = weights[i]
 		test_sum = np.sum(target_vector, axis=1)
-		target_vector = target_vector.reshape(w, h, 313)
+		target_vector = target_vector.reshape(w, h, self.num_bins)
 		test_sum2 = np.sum(target_vector, axis=2)
 		return target_vector
 
@@ -79,9 +82,10 @@ def prepare(set_spec, params):
 	dataset = Dataset(X)
 	'''test code for soft encoding'''
 	''''test code for loss comment out before training'''
-	loss_crit = RarityWeightedLoss(PRIOR_PROBS, lamda = 0.5, num_bins=313)
+	'''loss_crit = RarityWeightedLoss(PRIOR_PROBS, lamda = 0.5, num_bins=dataset.num_bins)
 	sample, target = dataset.__getitem__(0)
-	loss = loss_crit(target, target) #loss against itself should return 0
+	sample2, target2 = dataset.__getitem__(0)
+	loss = loss_crit(target, target) #loss against itself should return 0 returned 1.607'''
 	batch_size, num_workers, shuffle = params
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
 	

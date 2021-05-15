@@ -4,45 +4,38 @@ import numpy as np
 
 
 weight_mix = np.load('weight distribution mix with uniform distribution.npy')
-
+PRIOR_PROBS = np.load('prior_probs.npy')
 class RarityWeightedLoss():
 
     def __init__(self, pixelProbabilities, lamda, num_bins):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
         self.weighting_factor = PRIOR_PROBS
+        self.weight_mix = torch.tensor(weight_mix)
         self.pixel_dist = torch.tensor(pixelProbabilities)
         self.lamda = lamda
         self.Q = num_bins
 
     def __call__(self, prediction, target):
-        rows = target.shape[0]
-        cols = target.shape[1]
-        #cross entropy of z, z_hat (multiply and sum over q's
-        #non_z =  torch.nonzero(prediction)
-        #multiply = target[non_z.data]
-        pred = -torch.log(prediction)
-        mul = prediction * target
-        sum = torch.sum(mul, dim=2, keepdim=False)
-        sum_q = sum
-        #q = torch.matmul(target, torch.t(-torch.log(prediction)))
-        #sum_q = torch.sum(q, dim=2, keepdim=False)
-        #get the most likely color
-        pixel_val_for_weight = torch.argmax(target, dim=2)
-        pixel_val_for_weight = torch.flatten(pixel_val_for_weight)
-        #retrieve it's prior probability
-        probabilities = torch.tensor(self.pixel_dist[pixel_val_for_weight])
-        probabilities = torch.reshape(probabilities, (rows, cols))
-        #mix with normal distribution
-        weights = 1/((1-self.lamda)*probabilities + self.lamda/self.Q)
-        #normalize
-        weights = weights/torch.sum(weights)
-        loss = -torch.sum(weights*sum_q)
+        '''computes the class rebalanced multinomial crossentropy loss
+            in: prediction, target, soft encoded predicted and ground truth Z vectors
+            out: loss, scalar'''
+        #cross entropy of z, z_hat (multiply and sum over q's):
+        logs = torch.where(prediction > 0.0, torch.log(prediction), 0.0)
+        cross_entropy = target * logs
+        sum = torch.sum(cross_entropy, dim=2, keepdim=False)
+        weights = self.weighting(target)
+        weighted = sum * weights
+        loss = -torch.sum(weighted)
+
         return loss
 
     def weighting(self, Z):
-        most_likely_bin = np.argmax(Z, axis=2) # @todo Check the axis
-        v = weight_mix(most_likely_bin)
-        return v
+        rows = Z.shape[0]
+        cols = Z.shape[1]
+        most_likely_bin = torch.argmax(Z, axis=2)#
+
+        v = torch.index_select(self.weight_mix, 0, torch.flatten(most_likely_bin))
+        return v.reshape(rows, cols)/torch.sum(v)
 
 
 

@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from multiprocessing import Process
+from loss import RarityWeightedLoss, PRIOR_PROBS
 
 import data_loader as dl
 
@@ -27,9 +28,10 @@ opt = parser.parse_args()
 
 
 class Colorization_model(pl.LightningModule):
-	def __init__(self, norm_layer=nn.BatchNorm2d):
+	def __init__(self, norm_layer=nn.BatchNorm2d, lamda=0.5):
 		super(Colorization_model, self).__init__()
 		self.data_loaders = dl.return_loaders()
+		self.loss_criterion = RarityWeightedLoss(PRIOR_PROBS, lamda= lamda, num_bins=313)
 
 		model1=[nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True),]
 		model1+=[nn.ReLU(True),]
@@ -120,9 +122,16 @@ class Colorization_model(pl.LightningModule):
 
 	def training_step(self, batch, batch_idx):
 		X, y = batch
-		self.forward(X)
-	
-#     def validation_step(self,batch,batch_idx):
+		output = self.forward(X)
+		loss = self.loss_criterion(output, y)
+		return loss
+
+	def validation_step(self,batch,batch_idx):
+		X, y = batch
+		output = self.forward(X)
+		loss = self.loss_criterion(output, y)
+		self.log('val_loss', loss)
+		return loss
 		
 
 
@@ -146,7 +155,7 @@ class Colorization_model(pl.LightningModule):
 
 
 def run_trainer():
-	model = Colorization_model()
+	model = Colorization_model(lamda=0.5)
 	trainer = Trainer(max_epochs=1)
 	trainer.fit(model)
 

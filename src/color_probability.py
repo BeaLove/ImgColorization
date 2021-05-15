@@ -86,8 +86,23 @@ def count_ab_colors():
 
     return values
 
+def bin_centers():
+    probs = np.load('filtered probabilities - gaussian sigma 5.npy')
+    bins = np.arange(-105, 100, 10)
+    kernels = []
+    for a in bins:
+        for b in bins:
+            kernels.append([a,b])
+    kernels = np.asarray(kernels)
+    np.save('bin_centers.npy', kernels)
+    useful_probs = np.where(probs > 0)[0]
+    #good_kernels = kernels[]
+    return kernels
+
+
 # colors = count_ab_colors()
 # merge_color_probabilities()
 # display_color_probabilities()
 # gaussian_filter()
-uniform_distribution()
+#uniform_distribution()
+bin_centers()
