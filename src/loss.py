@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 
 
-PRIOR_PROBS = np.load('prior_probs.npy')
-#print("hellot")
+weight_mix = np.load('weight distribution mix with uniform distribution.npy')
 
 class RarityWeightedLoss():
 
     def __init__(self, pixelProbabilities, lamda, num_bins):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
+        self.weighting_factor = PRIOR_PROBS
         self.pixel_dist = torch.tensor(pixelProbabilities)
         self.lamda = lamda
         self.Q = num_bins
@@ -38,6 +38,12 @@ class RarityWeightedLoss():
         weights = weights/torch.sum(weights)
         loss = -torch.sum(weights*sum_q)
         return loss
+
+    def weighting(self, Z):
+        most_likely_bin = np.argmax(Z, axis=2) # @todo Check the axis
+        v = weight_mix(most_likely_bin)
+        return v
+
 
 
 
