@@ -7,7 +7,6 @@ import matplotlib.image as mpimg
 from skimage import color, io
 from tqdm import tqdm
 
-
 # np.random.seed(0)
 # dummy_data = np.random.randint(low=np.min(kernels), high=np.max(kernels), size=(10, 10, 2))
 # dummy_data = dummy_data/110
@@ -29,8 +28,18 @@ def display_color_probabilities():
     print("Number of bins containing a color:", np.count_nonzero(full_prob > 0))
 
     plt.figure()
-    plt.plot(full_prob)
+    plt.plot(full_prob.reshape(-1))
     plt.show()
+
+def gaussian_filter():
+    full_prob = np.load('full_probabilities.npy')
+    from scipy.ndimage.filters import gaussian_filter
+    filtered = gaussian_filter(full_prob.reshape(-1), sigma = 3)
+    np.save('filtered probabilities - gaussian.npy', filtered)
+    # filtered = full_prob.reshape(-1)
+    plt.figure()
+    plt.plot(filtered)
+    plt.savefig('Filtered probabilities - gaussian.png')
 
 def count_ab_colors():
     # batch_size = 150
@@ -71,4 +80,5 @@ def count_ab_colors():
 
 # colors = count_ab_colors()
 # merge_color_probabilities()
-display_color_probabilities()
+# display_color_probabilities()
+gaussian_filter()
