@@ -1,5 +1,4 @@
 import torch
-import pandas as pd
 import numpy as np
 
 
@@ -7,18 +6,16 @@ weight_mix = np.load('weight distribution mix with uniform distribution.npy')
 PRIOR_PROBS = np.load('prior_probs.npy')
 class RarityWeightedLoss():
 
-    def __init__(self, pixelProbabilities, lamda, num_bins):
+    def __init__(self, weight_mix, lamda, num_bins):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
-        self.weighting_factor = PRIOR_PROBS
         self.weight_mix = torch.tensor(weight_mix)
-        self.pixel_dist = torch.tensor(pixelProbabilities)
         self.lamda = lamda
         self.Q = num_bins
 
     def __call__(self, prediction, target):
         '''computes the class rebalanced multinomial crossentropy loss
             in: prediction, target, soft encoded predicted and ground truth Z vectors
-            out: loss, scalar'''
+            out: loss, scalar value'''
         #cross entropy of z, z_hat (multiply and sum over q's):
         logs = torch.where(prediction > 0.0, torch.log(prediction), 0.0)
         cross_entropy = target * logs
