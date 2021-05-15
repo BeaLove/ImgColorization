@@ -34,12 +34,20 @@ def display_color_probabilities():
 def gaussian_filter():
     full_prob = np.load('full_probabilities.npy')
     from scipy.ndimage.filters import gaussian_filter
-    filtered = gaussian_filter(full_prob.reshape(-1), sigma = 3)
+    filtered = gaussian_filter(full_prob.reshape(-1), sigma = 5)
     np.save('filtered probabilities - gaussian.npy', filtered)
     # filtered = full_prob.reshape(-1)
     plt.figure()
     plt.plot(filtered)
     plt.savefig('Filtered probabilities - gaussian.png')
+
+def uniform_distribution():
+    filtered_prob = np.load('filtered probabilities - gaussian sigma 5.npy')
+    weight = 1/((filtered_prob * 0.5) + 0.5/len(filtered_prob))
+    weight = weight / np.sum(filtered_prob * weight)
+    print("Weight: ", weight)
+    print("Expectation:", np.sum(filtered_prob * weight))
+    np.save('weight distribution mix with uniform distribution.npy', weight)
 
 def count_ab_colors():
     # batch_size = 150
@@ -81,4 +89,5 @@ def count_ab_colors():
 # colors = count_ab_colors()
 # merge_color_probabilities()
 # display_color_probabilities()
-gaussian_filter()
+# gaussian_filter()
+uniform_distribution()
