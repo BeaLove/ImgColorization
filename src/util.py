@@ -21,7 +21,7 @@ def load_image(path, shape = (64, 64), resize = False):
 	if resize:
 		im_raw = resize_img(im_raw, shape = shape)
 	
-	im_lab = color.rgb2lab(im_raw)/255
+	im_lab = color.rgb2lab(im_raw/255)
 	return im_lab, im_raw
 
 def stich_image(L, a, b):
