@@ -21,14 +21,18 @@ class Dataset(torch.utils.data.Dataset):
 
 
 	def __getitem__(self, i):
-		im = Image.open(self.dataset[i])
-		#im = io.imread(i)
+		#im = Image.open(self.dataset[i])
+		#with sklearn
+
+		im = io.imread(str(self.dataset[i]))
 		#im.show()
 		#im = torchvision.transforms.ToTensor()(im)
 		#im = torch.tensor(im, dtype=)
-		im = np.array(im, dtype = np.float64)
-		X, Y = im[:,:,0]/255*100, im[:,:,1:]-127
-		X = torch.tensor(X, dtype=torch.float64)
+		#im = np.array(im, dtype = np.float64)
+		#with skimage
+		X, Y = im[np.newaxis, :, :, 0], im[:, :, 1:]
+		#X, Y = im[np.newaxis, :,:, 0]/255*100, im[:,:,1:]-127
+		X = torch.tensor(X, dtype=torch.float32)
 		'''plt.imshow(X)
 		plt.show()
 		plt.imshow(Y[1,:,:])
@@ -79,7 +83,9 @@ def prepare(set_spec, params):
 	return train_loader
 
 def return_loaders(batch_size = 25, num_workers = 0, shuffle = True):
+	#for sklearn:
 	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
+	#paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
 
 	dataset = {}
