@@ -1,7 +1,9 @@
 import numpy as np
 import sklearn.neighbors as neighbors
 import torch
-kernels = np.load('pts_in_hull (1).npy')
+import misc.npy_loader.loader as npy
+
+kernels = npy.load('authors_pts_in_hull')
 print(kernels)
 '''load of test code!!!'''
 np.random.seed(0)

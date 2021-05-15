@@ -8,12 +8,13 @@ import numpy as np
 import sklearn.neighbors as knn
 from skimage import io
 import matplotlib.pyplot as plt
+import misc.npy_loader.loader as npy
 
 '''import loss to debug'''
 from loss import RarityWeightedLoss, PRIOR_PROBS
 
-POINTS_IN_HULL = np.load('authors_pts_in_hull.npy')
-bins_centers = np.load('bin_centers.npy')
+POINTS_IN_HULL = npy.load('authors_pts_in_hull')
+bins_centers = npy.load('bin_centers')
 '''don't reinvent the wheel!'''
 class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset, soft_encoding = True):

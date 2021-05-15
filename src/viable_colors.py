@@ -3,11 +3,12 @@ import sklearn.neighbors as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import misc.npy_loader.loader as npy
 
 
 #knn = KNeighborsClassifier(n_neighbors=5)
 
-points = np.load('pts_in_hull (1).npy')
+points = npy.load('authors_pts_in_hull')
 
 #print(points)
 

@@ -1,9 +1,9 @@
 import torch
 import numpy as np
+import misc.npy_loader.loader as npy
 
-
-weight_mix = np.load('weight distribution mix with uniform distribution.npy')
-PRIOR_PROBS = np.load('prior_probs.npy')
+weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution')
+PRIOR_PROBS = npy.load('authors_prior_probs')
 class RarityWeightedLoss():
 
     def __init__(self, weight_mix, lamda, num_bins):
