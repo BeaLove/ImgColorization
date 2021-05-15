@@ -195,20 +195,19 @@ import sys
 
 from skimage import io
 
-import test_model as tm
-
 if __name__ == '__main__':
 	# path = sys.argv[1]
-	path = 'test_image.jpg'
+	if len(sys.argv) < 2:
+		print('Call with as python3 test_model.py \'path/to/bw_image.jpg\'')
+		path = None
+	else:
+		path = str(sys.argv[1])
 
-	try: 
-		im = util.load_img(path)
-		model = tm.siggraph17(pretrained=True)
-		im = util.load_img(path)
-		im_fr, im_resized = util.preprocess_img(im)
+	if path != None:
+		model = siggraph17(pretrained=True)
+		im = util.load_img_src(path)
+		im_fr, im_resized = util.preprocess_img_src(im)
 		im_out = model.forward(im_resized)
 		im_color = util.postprocess_tens(im_resized, im_out)
 		io.imshow(im_color)
 		io.show()
-	except:
-		print('Put a black and white image in the same folder named test_image.jpg and run script')
