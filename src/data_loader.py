@@ -9,6 +9,8 @@ import sklearn.neighbors as knn
 from skimage import io
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
+'''import loss to debug'''
+from loss import RarityWeightedLoss, PRIOR_PROBS
 
 POINTS_IN_HULL = np.load('pts_in_hull (1).npy')
 '''don't reinvent the wheel!'''
@@ -76,7 +78,10 @@ def prepare(set_spec, params):
 
 	dataset = Dataset(X)
 	'''test code for soft encoding'''
-	#dataset.__getitem__(0)
+	''''test code for loss comment out before training'''
+	loss_crit = RarityWeightedLoss(PRIOR_PROBS, lamda = 0.5, num_bins=313)
+	sample, target = dataset.__getitem__(0)
+	loss = loss_crit(target, target) #loss against itself should return 0
 	batch_size, num_workers, shuffle = params
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
 	
