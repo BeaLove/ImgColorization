@@ -6,10 +6,9 @@ import sklearn.neighbors as knn
 import torch.nn.functional as F
 from IPython import embed
 import cv2
-import misc.npy_loader.loader as npy
 
-POINTS_IN_HULL = npy.load('authors_pts_in_hull')
-BIN_CENTERS = npy.load('bin_centers')
+POINTS_IN_HULL = np.load('authors_pts_in_hull.npy')
+BIN_CENTERS = np.load('bin_centers.npy')
 
 def load_image(path, shape = (64, 64), resize = False):
 	""" loads an image given a path 

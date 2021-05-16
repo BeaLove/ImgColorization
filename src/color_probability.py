@@ -6,25 +6,24 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from skimage import color, io
 from tqdm import tqdm
-import misc.npy_loader.loader as npy
 
 # np.random.seed(0)
 # dummy_data = np.random.randint(low=np.min(kernels), high=np.max(kernels), size=(10, 10, 2))
 # dummy_data = dummy_data/110
 
 def merge_color_probabilities():
-    test_prob = npy.load('probabilities_test_set')
-    train_prob = npy.load('probabilities_training_set')
-    val_prob = npy.load('probabilities_val_set')
+    test_prob = np.load('probabilities test set.npy')
+    train_prob = np.load('probabilities training set.npy')
+    val_prob = np.load('probabilities val set.npy')
     full_prob = (test_prob + train_prob + val_prob)/3
     print("Sanity check, total probability:", np.sum(full_prob))
     plt.figure()
     plt.plot(full_prob)
     plt.show()
-    npy.save('full_probabilities', full_prob)
+    np.save('full_probabilities.npy', full_prob)
 
 def display_color_probabilities():
-    full_prob = npy.load('full_probabilities')
+    full_prob = np.load('full_probabilities.npy')
     print("Color probability statistics")
     print("Number of bins containing a color:", np.count_nonzero(full_prob > 0))
 
@@ -36,23 +35,23 @@ def gaussian_filter():
     full_prob = np.load('full_probabilities.npy')
     from scipy.ndimage.filters import gaussian_filter
     filtered = gaussian_filter(full_prob.reshape(-1), sigma = 5)
-    npy.save('filtered_probabilities_gaussian', filtered)
+    np.save('filtered probabilities - gaussian.npy', filtered)
     # filtered = full_prob.reshape(-1)
     plt.figure()
     plt.plot(filtered)
     plt.savefig('Filtered probabilities - gaussian.png')
 
 def uniform_distribution():
-    filtered_prob = npy.load('filtered_probabilities_gaussian_sigma_5')
+    filtered_prob = np.load('filtered probabilities - gaussian sigma 5.npy')
     weight = 1/((filtered_prob * 0.5) + 0.5/len(filtered_prob))
     weight = weight / np.sum(filtered_prob * weight)
     print("Weight: ", weight)
     print("Expectation:", np.sum(filtered_prob * weight))
-    npy.save('weight_distribution_mix_with_uniform_distribution', weight)
+    np.save('weight distribution mix with uniform distribution.npy', weight)
 
 def count_ab_colors():
     # batch_size = 150
-    POINTS_IN_HULL = npy.load('authors_pts_in_hull')
+    POINTS_IN_HULL = np.load('pts_in_hull (1).npy')
     # probabilities_old = np.load('probabilities.npy')
     kernels = POINTS_IN_HULL
     # datalist = Path('../dataset').glob('**/*.TIF')
@@ -83,19 +82,19 @@ def count_ab_colors():
     plt.figure()
     plt.plot(probability)
     plt.show()
-    npy.save('probabilities', probability)
+    np.save('probabilities.npy', probability)
 
     return values
 
 def bin_centers():
-    probs = npy.load('filtered_probabilities_gaussian_sigma_5')
+    probs = np.load('filtered probabilities - gaussian sigma 5.npy')
     bins = np.arange(-105, 100, 10)
     kernels = []
     for a in bins:
         for b in bins:
             kernels.append([a,b])
     kernels = np.asarray(kernels)
-    npy.save('bin_centers', kernels)
+    np.save('bin_centers.npy', kernels)
     useful_probs = np.where(probs > 0)[0]
     #good_kernels = kernels[]
     return kernels
