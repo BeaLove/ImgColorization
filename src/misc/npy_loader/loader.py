@@ -36,11 +36,11 @@ def _format(name):
 def _dump(data):
 	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'npy.json'
 	with open(path, 'w') as f:
-		json.dump(data, f, cls = NPYEncoder)
+		json.dump(data, f, cls = NPYEncoder, sort_keys = True)
 
 	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'valid_keys.txt'
 	with open(path, 'w') as f:
-		for key in list_all():
+		for key in sorted(list_all()):
 			f.write(f'{key}\n')
 
 def _pretty_print(keys, as_string = False):
