@@ -76,7 +76,7 @@ def decode_targets(data, args = 'annealing'):
 		raise ValueError(f'args = {args} not a valid argument')
 
 if __name__ == '__main__':
-	path = 'input_img/test_color_img.JPEG'
+	path = 'test_color_image.jpg'
 	X, Y, im = util.load_image_softencoded(path)
 
 	bc = torch.tensor(util.BIN_CENTERS)
