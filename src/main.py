@@ -9,7 +9,8 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
 from multiprocessing import Process
-from loss import RarityWeightedLoss, PRIOR_PROBS
+from loss import RarityWeightedLoss
+import misc.npy_loader.loader as npy
 
 import data_loader as dl
 
@@ -21,18 +22,20 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
+parser.add_argument('--betas', default = (0.9, 0.999), help='betas for ADAM')
 opt = parser.parse_args()
 
 """
  Code found from: https://github.com/richzhang/colorization
 """
 
+weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution')
 
 class Colorization_model(pl.LightningModule):
-	def __init__(self, norm_layer=nn.BatchNorm2d, lamda=0.5):
+	def __init__(self, norm_layer=nn.BatchNorm2d):
 		super(Colorization_model, self).__init__()
 		self.data_loaders = dl.return_loaders()
-		self.loss_criterion = RarityWeightedLoss(PRIOR_PROBS, lamda= lamda, num_bins=313)
+		self.loss_criterion = RarityWeightedLoss(weight_mix)
 
 		model1=[nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True),]
 		model1+=[nn.ReLU(True),]
@@ -124,21 +127,21 @@ class Colorization_model(pl.LightningModule):
 	def training_step(self, batch, batch_idx):
 		X, y = batch
 		output = self.forward(X)
-		loss = self.loss_criterion(output, y)
+
+		loss = self.loss_criterion(output.float(), y.float())
 		self.log('train_loss', loss)
 		return loss
 
 	def validation_step(self,batch,batch_idx):
 		X, y = batch
 		output = self.forward(X)
-		loss = self.loss_criterion(output, y)
+		print(output.dtype)
+		loss = self.loss_criterion(output.float(), y.float())
 		self.log('val_loss', loss)
 		return loss
 		
-
-
-#     def configure_optimizers(self):
-#         return torch.optim.Adam(self.parameters(), lr=opt.lr, betas=(opt.beta_1, opt.beta_2),weight_decay=1e-5)
+	def configure_optimizers(self):
+		return torch.optim.Adam(self.parameters(), lr=opt.lr, betas=opt.betas, weight_decay=1e-5)
 
 	# @pl.data_loader
 	def train_dataloader(self):
@@ -151,9 +154,9 @@ class Colorization_model(pl.LightningModule):
 	def val_dataloader(self):
 		return self.data_loaders['validation']
 
-	def configure_optimizers(self):
+	#def configure_optimizers(self):
 		# Dummy optimizer for testing
-		return torch.optim.Adam(self.parameters(), lr=1e-5)
+	#	return torch.optim.Adam(self.parameters(), lr=1e-5)
 
 
 def run_trainer():
@@ -164,11 +167,10 @@ def run_trainer():
 		verbose=False,
 		mode='max'
 	)
-	model = Colorization_model(lamda=0.5)
-	trainer = Trainer(max_epochs=1,
-					  limit_train_batches=0.05,
-					  limit_val_batches=1.0,
-					  limit_test_batches=1.0)
+	model = Colorization_model()
+	trainer = Trainer(max_epochs=100,
+					  limit_train_batches=1.0,
+					  limit_val_batches=1.0)
 	trainer.fit(model)
 	os.makedirs('trained_models', exist_ok=True)
 	name = 'ColorizationModelOverfitTest.pth'

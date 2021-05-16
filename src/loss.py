@@ -7,11 +7,11 @@ weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution')
 PRIOR_PROBS = npy.load('full_probabilities')
 class RarityWeightedLoss():
 
-    def __init__(self, weight_mix, lamda, num_bins):
+    def __init__(self, weight_mix, lamda=0.5, num_bins=441):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
         self.weight_mix = torch.tensor(weight_mix)
-        self.lamda = lamda
-        self.Q = num_bins
+        #self.lamda = lamda
+        #self.Q = num_bins
 
     def __call__(self, prediction, target):
         '''computes the class rebalanced multinomial crossentropy loss
