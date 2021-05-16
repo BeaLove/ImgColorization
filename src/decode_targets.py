@@ -80,13 +80,27 @@ if __name__ == '__main__':
 	X, Y, im = util.load_image_softencoded(path)
 
 	bc = torch.tensor(util.BIN_CENTERS)
-
+	'''compare values'''
 	ab_channels = decode_targets(Y, args = 'annealing')
 	L = X.detach().cpu().numpy().reshape(64, 64)
-
-	im_raw = util.load_image_raw(path, resize = True)
+	#im_raw = util.load_image_raw(path, resize = True)
 	im_stitched = util.stich_image(L, ab_channels)
-	im_decoded = util.data2rgb(im_stitched)
+	im_decoded_annealed = util.data2rgb(im_stitched)
+
+	ab_channels = decode_targets(Y, args='mode')
+	L = X.detach().cpu().numpy().reshape(64, 64)
+	# im_raw = util.load_image_raw(path, resize = True)
+	im_stitched = util.stich_image(L, ab_channels)
+	im_decoded_mode = util.data2rgb(im_stitched)
+
+	ab_channels = decode_targets(Y, args='mean')
+	L = X.detach().cpu().numpy().reshape(64, 64)
+	# im_raw = util.load_image_raw(path, resize = True)
+	im_stitched = util.stich_image(L, ab_channels)
+	im_decoded_mean = util.data2rgb(im_stitched)
+	diff_mode_mean = im_decoded_mode - im_decoded_mean
+	diff_mean_annealed = im_decoded_mean - im_decoded_annealed
+
 	io.imshow(im_decoded)
 	os.makedirs('outputs', exist_ok=True)
 	io.imsave('outputs/decoded_annealed_test.jpg', im_decoded)
