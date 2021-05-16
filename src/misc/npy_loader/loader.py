@@ -18,7 +18,6 @@ def _load_internal_memory():
 	path = Path(__file__).parent.absolute() / 'npy.json'
 	with open(path, 'r') as f:
 		data = json.load(f)
-
 	return _decode_json(data)
 
 def _decode_json(dic):
@@ -46,7 +45,7 @@ def save(name, data):
 	""" save data to file name """
 	name = _format(name)
 
-	if name in memory.keys():
+	if name in list_all():
 		warnings.warn(f'File {name} was overwritten!')
 
 	memory[name] = data
