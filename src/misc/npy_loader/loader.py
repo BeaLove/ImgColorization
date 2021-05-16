@@ -45,7 +45,7 @@ def _dump(data):
 
 def _pretty_print(keys, as_string = False):
 	prt = pprint.PrettyPrinter(indent = 1, depth = 2)
-	string = '\n\n' + prt.pformat('Valid keys = ') + prt.pformat(keys) + '\n'
+	string = '\n\n' + 'Valid keys = ' + prt.pformat(keys) + '\n'
 	if as_string:
 		return string
 	else:
