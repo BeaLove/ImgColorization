@@ -29,12 +29,7 @@ def stich_image(L, ab_channels):
 	'''in: L numpy array (64,64), ab_channels numpy array (64,64,2)
 		operation: concatenates
 		returns: LAB-image as (64,64,3)'''
-	'''
-	assert L.shape == a.shape == b.shape # sanity check
-	out = np.ones(shape = (L.shape[0], L.shape[1], 3))
-	out[:,:,0], out[:,:,1], out[:,:,2] = L, a, b # This is a bit stupid but np.array gave me (3, 64, 64) and that is not compatible with skimage
-	 out = np.array(list(zip(L, a, b)))'''
-
+		
 	out = np.concatenate((L[:,:,np.newaxis], ab_channels), axis=2)
 	return out
 
