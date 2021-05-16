@@ -99,7 +99,6 @@ if __name__ == '__main__':
 	'''compare values'''
 	ab_channels = decode_targets(Y, algorithm = 'annealing')
 	L = X.detach().cpu().numpy().reshape(64, 64)
-	#im_raw = util.load_image_raw(path, resize = True)
 	im_stitched = util.stich_image(L, ab_channels)
 	im_decoded_annealed = util.data2rgb(im_stitched)
 
