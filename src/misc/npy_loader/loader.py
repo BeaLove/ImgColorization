@@ -32,6 +32,16 @@ def _format(name):
 	else:
 		return name
 
+def _dump(data):
+	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'npy.json'
+	with open(path, 'w') as f:
+		json.dump(data, f, cls = NPYEncoder)
+
+	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'valid_keys.txt'
+	with open(path, 'w') as f:
+		for key in list_all():
+			f.write(f'{key}\n')
+
 def load(name):
 	""" load data from name """
 	name = _format(name)
@@ -44,12 +54,7 @@ def load(name):
 def save(name, data):
 	""" save data to file name """
 	name = _format(name)
-
-	if name in list_all():
-		warnings.warn(f'File {name} was overwritten!')
-
 	memory[name] = data
-
 	_dump(memory)
 
 
@@ -68,26 +73,9 @@ def list_all(verbose = False):
 		print(memory.keys())
 	return memory.keys()
 
-def _dump(data):
-	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'npy.json'
-	with open(path, 'w') as f:
-		json.dump(data, f, cls = NPYEncoder)
-
-def _make_json():
-	""" private """
-	path = Path(os.path.dirname(os.path.realpath(__file__))) / 'npy'
-	files = path.glob('*.npy')
-	data = {}
-	
-	for f in files:
-		data[f.name.replace('.npy', '')] = np.load(str(f))
-
-	_dump(data)
-
 memory = _load_internal_memory()
 
 if __name__ == '__main__':
-#	_make_json()
 # 	test functions
 	list_all(verbose = True)
 	print(_format('test.npy'))
