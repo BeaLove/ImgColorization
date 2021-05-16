@@ -101,8 +101,8 @@ if __name__ == '__main__':
 	diff_mode_mean = im_decoded_mode - im_decoded_mean
 	diff_mean_annealed = im_decoded_mean - im_decoded_annealed
 
-	io.imshow(im_decoded)
+	io.imshow(im_decoded_annealed)
 	os.makedirs('outputs', exist_ok=True)
-	io.imsave('outputs/decoded_annealed_test.jpg', im_decoded)
+	io.imsave('outputs/decoded_annealed_test.jpg', im_decoded_annealed)
 	io.show()
 	# im_decoded = util.data2lab(im_decoded)
