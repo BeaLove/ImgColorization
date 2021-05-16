@@ -7,6 +7,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping
 from multiprocessing import Process
 from loss import RarityWeightedLoss, PRIOR_PROBS
 
@@ -124,6 +125,7 @@ class Colorization_model(pl.LightningModule):
 		X, y = batch
 		output = self.forward(X)
 		loss = self.loss_criterion(output, y)
+		self.log('train_loss', loss)
 		return loss
 
 	def validation_step(self,batch,batch_idx):
@@ -155,9 +157,22 @@ class Colorization_model(pl.LightningModule):
 
 
 def run_trainer():
+	early_stop_call_back = EarlyStopping(
+		monitor='val_loss',
+		min_delta=0.00,
+		patience=5,
+		verbose=False,
+		mode='max'
+	)
 	model = Colorization_model(lamda=0.5)
-	trainer = Trainer(max_epochs=1)
+	trainer = Trainer(max_epochs=1,
+					  limit_train_batches=0.05,
+					  limit_val_batches=1.0,
+					  limit_test_batches=1.0)
 	trainer.fit(model)
+	os.makedirs('trained_models', exist_ok=True)
+	name = 'ColorizationModelOverfitTest.pth'
+	torch.save(model.state_dict(), os.path.join('trained_models', name))
 
 if __name__ == '__main__':
 	# p1 = Process(target=run_trainer)                    # start trainer

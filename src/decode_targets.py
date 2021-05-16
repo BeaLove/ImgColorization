@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import util
 from skimage import io, color
+from main import Colorization_model
 
 def _decode_mode(data):
 	'''in: data: torch tensor of ab_channels
@@ -36,8 +37,6 @@ def _decode_mean(data):
 	y = y_idx.reshape(H, W, q_dim_shape)
 	#q_dim_shape =
 	return mean
-
-
 
 def _decode_annealing(data):
 	'''annealed mean color decoding
@@ -75,8 +74,31 @@ def decode_targets(data, args = 'annealing'):
 	else:
 		raise ValueError(f'args = {args} not a valid argument')
 
+def load_and_decode(img_path, model_name = None, resize=False, args= 'annealing'):
+	'''in: img_path string, model: colorizer model name, args: 'annealing', 'mean', or 'mode', type of decoding
+		loads img, splits channels and colorizes the bw
+		out: colorized img'''
+	img = util.load_image_raw(img_path, resize=False)
+	model = Colorization_model(lamda=0.5)
+	if model_name == None:
+		print("must specify model name")
+		raise ValueError
+	colorizer = model.load_state_dict(torch.load(model_name)) #TODO is this the correct way to load a trained model?
+	L, a, b = util.split_channels(img)
+	L = torch.tensor(L)
+	Y = colorizer.forward(L)
+	ab_channels = decode_targets(Y, args=args)
+	im_stitched = util.stich_image(L, ab_channels)
+	im_decoded = util.data2rgb(im_stitched)
+	os.makedirs('outputs', exist_ok=True)
+	io.imsave(os.path.join('outputs', img_path), im_decoded)
+
+
+
 if __name__ == '__main__':
-	path = 'input_img/test_color_img.JPEG'
+	path = 'input_img/test_tif_0.TIF'
+	model = 'trained_models/ColorizationModelOverfitTest.pth'
+	load_and_decode(path, model=model, resize=False)
 	X, Y, im = util.load_image_softencoded(path)
 
 	bc = torch.tensor(util.BIN_CENTERS)

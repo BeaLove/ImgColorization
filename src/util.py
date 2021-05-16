@@ -1,3 +1,5 @@
+import os.path
+
 from PIL import Image
 import numpy as np
 from skimage import color, io
@@ -18,12 +20,15 @@ def load_image(path, shape = (64, 64), resize = False):
 			out: (img, img_raw)
 	"""
 	im_raw = io.imread(path)
-	
 	if resize:
 		im_raw = resize_img(im_raw, shape = shape)
-	
-	im_lab = color.rgb2lab(im_raw/255)
-	return im_lab, im_raw
+
+	if os.path.splitext()[-1] == 'tif':
+		return im_raw
+	else:
+		im_lab = color.rgb2lab(im_raw/255)
+		return im_lab
+	#return im_lab, im_raw
 
 def stich_image(L, ab_channels):
 	'''in: L numpy array (64,64), ab_channels numpy array (64,64,2)
@@ -41,9 +46,17 @@ def stich_image(L, ab_channels):
 def load_image_raw(path, resize = False):
 	""" loads the raw image from path as lab """
 	if resize:
-		return color.rgb2lab(resize_img(io.imread(path)))
+		img = resize_img(io.imread(path))
 	else:
-		return color.rgb2lab(io.imread(path))
+		if os.path.splitext(path) == 'tif':
+			img = io.imread(path)
+		else:
+			img = color.rgb2lab(io.imread(path)/255)
+	return img
+
+def split_channels(img):
+	L, a, b = img[np.newaxis, :,:,0], img[:,:,1], img[:,:,2]
+	return L, a, b
 
 def data2rgb(im):
 	""" reverts image back to rgb """
