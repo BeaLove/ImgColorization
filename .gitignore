@@ -11,6 +11,13 @@
 /dataset/test_tif/
 /dataset/val_tif/
 
+# logs
+/src/lightning_logs/
+/src/outputs/
+
+# Venv 
+/venv/
+
 
 # Dataset files
 wnids.txt
@@ -18,7 +25,9 @@ words.txt
 
 # Just to be on the safe side
 *.JPEG
+*.jpg
 *.TIF
+*.zip
 
 # VS_code
 __pycache__/

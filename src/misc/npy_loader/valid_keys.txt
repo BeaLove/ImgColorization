@@ -1,0 +1,11 @@
+authors_prior_probs
+authors_pts_in_hull
+bin_centers
+bin_centers_test
+filtered_probabilities_gaussian
+filtered_probabilities_gaussian_sigma_5
+full_probabilities
+probabilities_test_set
+probabilities_training_set
+probabilities_val_set
+weight_distribution_mix_with_uniform_distribution
