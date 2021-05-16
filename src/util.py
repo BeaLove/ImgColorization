@@ -25,11 +25,17 @@ def load_image(path, shape = (64, 64), resize = False):
 	im_lab = color.rgb2lab(im_raw/255)
 	return im_lab, im_raw
 
-def stich_image(L, a, b):
+def stich_image(L, ab_channels):
+	'''in: L numpy array (64,64), ab_channels numpy array (64,64,2)
+		operation: concatenates
+		returns: LAB-image as (64,64,3)'''
+	'''
 	assert L.shape == a.shape == b.shape # sanity check
 	out = np.ones(shape = (L.shape[0], L.shape[1], 3))
 	out[:,:,0], out[:,:,1], out[:,:,2] = L, a, b # This is a bit stupid but np.array gave me (3, 64, 64) and that is not compatible with skimage
-	# out = np.array(list(zip(L, a, b)))
+	 out = np.array(list(zip(L, a, b)))'''
+
+	out = np.concatenate((L[:,:,np.newaxis], ab_channels), axis=2)
 	return out
 
 def load_image_raw(path, resize = False):
@@ -39,10 +45,11 @@ def load_image_raw(path, resize = False):
 	else:
 		return color.rgb2lab(io.imread(path))
 
-def data2lab(im):
-	""" reverts our encoded values back to proper lab as defined by skimage """
-	raise Exception("Not implemented")
+def data2rgb(im):
+	""" reverts image back to rgb """
 	return color.lab2rgb(im)
+	#raise Exception("Not implemented")
+
 
 def resize_img(im, shape = (64, 64)):
 	""" This resizes the image given our datastructure """
@@ -80,6 +87,8 @@ def _softEncoding(pixels, sigma=5):
 	target_vector = target_vector.reshape(w, h,num_bins)
 	test_sum2 = np.sum(target_vector, axis=2)
 	return target_vector
+
+
 
 
 """ Don't use the below functions for our datastructure """

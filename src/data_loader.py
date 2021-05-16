@@ -3,11 +3,10 @@ from pathlib import Path
 from functools import partial
 
 
-from PIL import Image
 import numpy as np
 import sklearn.neighbors as knn
-from skimage import io
-import matplotlib.pyplot as plt
+from skimage import io, color
+
 
 '''import loss to debug'''
 from loss import RarityWeightedLoss, PRIOR_PROBS
@@ -84,8 +83,7 @@ def prepare(set_spec, params):
 	''''test code for loss comment out before training'''
 	'''loss_crit = RarityWeightedLoss(PRIOR_PROBS, lamda = 0.5, num_bins=dataset.num_bins)
 	sample, target = dataset.__getitem__(0)
-	sample2, target2 = dataset.__getitem__(0)
-	loss = loss_crit(target, target) #loss against itself should return 0 returned 1.607'''
+	sample2, target2 = dataset.__getitem__(0)'''
 	batch_size, num_workers, shuffle = params
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
 	

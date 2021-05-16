@@ -3,7 +3,7 @@ import numpy as np
 
 
 weight_mix = np.load('weight distribution mix with uniform distribution.npy')
-PRIOR_PROBS = np.load('prior_probs.npy')
+PRIOR_PROBS = np.load('authors_prior_probs.npy')
 class RarityWeightedLoss():
 
     def __init__(self, weight_mix, lamda, num_bins):
