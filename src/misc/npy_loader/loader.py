@@ -6,6 +6,7 @@ from numpy.lib.npyio import load
 import warnings
 from json import JSONEncoder
 import json
+import pprint
 
 class NPYEncoder(JSONEncoder):
 	def default(self, data):
@@ -42,13 +43,22 @@ def _dump(data):
 		for key in list_all():
 			f.write(f'{key}\n')
 
+def _pretty_print(keys, as_string = False):
+	prt = pprint.PrettyPrinter(indent = 1, depth = 2)
+	string = '\n\n' + prt.pformat('Valid keys = ') + prt.pformat(keys) + '\n'
+	if as_string:
+		return string
+	else:
+		print(string)
+
+
 def load(name):
 	""" load data from name """
 	name = _format(name)
 
 	if name not in list_all():
-		string = ' : '.join(list_all())
-		raise ValueError(f'\nNo such file {name}.\nAvailable files are:\n{string}')
+		string = _pretty_print(list_all(), as_string = True)
+		raise ValueError(f'\nNo such file {name}. {string}')
 	return memory[name]
 
 def save(name, data):
@@ -65,13 +75,13 @@ def rm(name):
 		memory.pop(name)
 		_dump(memory)
 	else:
-		string = ' : '.join(list_all())
-		warnings.warn(f'\n\nAction aborted no file named {name}.\nAvailable files:\n{string}')
+		string = _pretty_print(list_all(), as_string = True)
+		warnings.warn(f'\n\nAction aborted no file named {name}. {string}')
 
 def list_all(verbose = False):
 	if verbose:
-		print(memory.keys())
-	return memory.keys()
+		_pretty_print(list(memory.keys()))
+	return list(memory.keys())
 
 memory = _load_internal_memory()
 
@@ -86,4 +96,5 @@ if __name__ == '__main__':
 	rm('test')
 	list_all(verbose = True)
 	load('authors_prior_probs.npy')
+	# load('pippis_aventyr')
 	rm('alla_barnen_i_bullerbyn')
