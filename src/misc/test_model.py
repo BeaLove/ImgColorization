@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import os, sys
 
 """
 Put a black and white image in the same folder named test_image.jpg and run script
@@ -189,11 +190,15 @@ def siggraph17(pretrained=True):
 		model.load_state_dict(model_zoo.load_url('https://colorizers.s3.us-east-2.amazonaws.com/siggraph17-df00044c.pth',map_location='cpu',check_hash=True))
 	return model
 
-
-import util
 import sys
 
 from skimage import io
+
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
+import util
 
 if __name__ == '__main__':
 	# path = sys.argv[1]
