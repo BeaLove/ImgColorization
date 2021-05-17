@@ -5,6 +5,7 @@ import numpy as np
 import util
 from skimage import io, color
 from main import Colorization_model
+from pytorch_lightning import LightningModule
 
 def _decode_mode(data):
 	'''in: data: torch tensor of ab_channels
@@ -67,19 +68,24 @@ def decode_targets(data, algorithm = 'annealing'):
 	else:
 		raise ValueError(f'algorithm = {algorithm} not a valid argument')
 
-def load_and_decode(img_path, model_name = None, resize=False, algorithm= 'annealing'):
+def load_and_decode(img_path,  last_checkpoint_path, model_name = None, resize=False, algorithm= 'annealing'):
 	'''in: img_path string, model: colorizer model name, args: 'annealing', 'mean', or 'mode', type of decoding
 		loads img, splits channels and colorizes the bw
 		out: colorized img'''
 	img = util.load_image_raw(img_path, resize=False)
-	model = Colorization_model(lamda=0.5)
+	model = Colorization_model()
+	'''optional using Lightning'''
 	if model_name == None:
 		print("must specify model name")
 		raise ValueError
+	pretrained_model = LightningModule.load_from_checkpoint(last_checkpoint_path)
+	pretrained_model.freeze()
+
 	colorizer = model.load_state_dict(torch.load(model_name)) #TODO is this the correct way to load a trained model?
 	L, a, b = util.split_channels(img)
 	L = torch.tensor(L)
-	Y = colorizer.forward(L)
+	#Y = colorizer.predict(L)
+	prediction = pretrained_model()
 	ab_channels = decode_targets(Y, algorithm=algorithm)
 	im_stitched = util.stich_image(L, ab_channels)
 	im_decoded = util.data2rgb(im_stitched)
@@ -92,7 +98,7 @@ if __name__ == '__main__':
 	path = 'test_color_image.jpg'
 	path = 'input_img/test_tif_0.TIF'
 	model = 'trained_models/ColorizationModelOverfitTest.pth'
-	load_and_decode(path, model=model, resize=False)
+	load_and_decode(path, model_name=model, resize=False)
 	X, Y, im = util.load_image_softencoded(path)
 
 	bc = torch.tensor(util.BIN_CENTERS)

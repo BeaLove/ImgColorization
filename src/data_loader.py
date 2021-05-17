@@ -7,7 +7,7 @@ from PIL import Image
 import numpy as np
 import sklearn.neighbors as knn
 from skimage import io
-import matplotlib.pyplot as plt
+from torchvision.transforms import Normalize
 import misc.npy_loader.loader as npy
 
 '''import loss to debug'''
@@ -20,6 +20,7 @@ class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset, soft_encoding = True):
 		self.dataset = dataset
 		self.kernels = bins_centers
+		self.L_normalize = 100
 		self.kernel_normalize = np.max(np.abs(self.kernels))
 		self.num_bins = len(self.kernels)
 		self.neighborhood = knn.NearestNeighbors(n_neighbors=5).fit(self.kernels/self.kernel_normalize)
@@ -31,12 +32,12 @@ class Dataset(torch.utils.data.Dataset):
 		#with sklearn
 		im = io.imread(str(self.dataset[i]))
 		X, Y = im[np.newaxis, :, :, 0], im[:, :, 1:]
-		X = torch.tensor(X, dtype=torch.float32)
+		X = torch.tensor(X, dtype=torch.float32)/self.L_normalize
 
 		if self.soft_encoding:
 			Y = torch.tensor(self.softEncoding(Y, sigma=5))
 		else:
-			Y = torch.tensor(np.moveaxis(Y, 2, 0)) #switch to channel first format
+			Y = torch.tensor(np.moveaxis(Y, 2, 0))/self.kernel_normalize #switch to channel first format
 		return X, Y
 		
 	def __len__(self):
@@ -72,7 +73,7 @@ def prepare(set_spec, params):
 	
 	return train_loader
 
-def return_loaders(batch_size = 25, num_workers = 4, shuffle = True, soft_encoding=True):
+def return_loaders(batch_size = 25, num_workers = 0, shuffle = True, soft_encoding=True):
 	paths = ['../dataset/test_tif', '../dataset/train_tif_subset', '../dataset/val_tif'] #sanity check with only 500 train images
 	#paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
