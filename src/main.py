@@ -9,7 +9,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
 from multiprocessing import Process
-from loss import RarityWeightedLoss
+from loss import RarityWeightedLoss, L2Loss
 import misc.npy_loader.loader as npy
 
 import data_loader as dl
@@ -32,11 +32,11 @@ opt = parser.parse_args()
 weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution')
 
 class Colorization_model(pl.LightningModule):
-	def __init__(self, norm_layer=nn.BatchNorm2d):
+	def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=441):
 		super(Colorization_model, self).__init__()
-		self.data_loaders = dl.return_loaders()
-		self.loss_criterion = RarityWeightedLoss(weight_mix)
-
+		self.data_loaders = dl.return_loaders(soft_encoding=False)
+		#self.loss_criterion = RarityWeightedLoss(weight_mix)
+		self.loss_criterion = L2Loss()
 		model1=[nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True),]
 		model1+=[nn.ReLU(True),]
 		model1+=[nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1, bias=True),]
@@ -96,7 +96,7 @@ class Colorization_model(pl.LightningModule):
 		model8+=[nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1, bias=True),]
 		model8+=[nn.ReLU(True),]
 
-		model8+=[nn.Conv2d(256, 313, kernel_size=1, stride=1, padding=0, bias=True),]
+		model8+=[nn.Conv2d(256, num_bins, kernel_size=1, stride=1, padding=0, bias=True),]
 
 		self.model1 = nn.Sequential(*model1)
 		self.model2 = nn.Sequential(*model2)
@@ -108,7 +108,8 @@ class Colorization_model(pl.LightningModule):
 		self.model8 = nn.Sequential(*model8)
 
 		self.softmax = nn.Softmax(dim=1)
-		self.model_out = nn.Conv2d(313, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False)
+		'''note skipping the model out layer '''
+		self.model_out = nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False)
 		self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear')
 
 
@@ -121,8 +122,11 @@ class Colorization_model(pl.LightningModule):
 		conv6_3 = self.model6(conv5_3)
 		conv7_3 = self.model7(conv6_3)
 		conv8_3 = self.model8(conv7_3)
+		'''try returning num bins to loss function'''
 		out_reg = self.model_out(self.softmax(conv8_3))
-		return out_reg
+		#out_reg = self.upsample4(self.softmax(conv8_3))
+		out = self.upsample4(out_reg)
+		return out
 
 	def training_step(self, batch, batch_idx):
 		X, y = batch
@@ -135,7 +139,6 @@ class Colorization_model(pl.LightningModule):
 	def validation_step(self,batch,batch_idx):
 		X, y = batch
 		output = self.forward(X)
-		print(output.dtype)
 		loss = self.loss_criterion(output.float(), y.float())
 		self.log('val_loss', loss)
 		return loss
@@ -170,7 +173,8 @@ def run_trainer():
 	model = Colorization_model()
 	trainer = Trainer(max_epochs=100,
 					  limit_train_batches=1.0,
-					  limit_val_batches=1.0)
+					  limit_val_batches=0.05,
+					  check_val_every_n_epoch=20)
 	trainer.fit(model)
 	os.makedirs('trained_models', exist_ok=True)
 	name = 'ColorizationModelOverfitTest.pth'

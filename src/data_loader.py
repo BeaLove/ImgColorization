@@ -36,7 +36,7 @@ class Dataset(torch.utils.data.Dataset):
 		if self.soft_encoding:
 			Y = torch.tensor(self.softEncoding(Y, sigma=5))
 		else:
-			Y = torch.tensor(Y)
+			Y = torch.tensor(np.moveaxis(Y, 2, 0)) #switch to channel first format
 		return X, Y
 		
 	def __len__(self):
@@ -58,27 +58,27 @@ class Dataset(torch.utils.data.Dataset):
 		for i in range(len(weights)):
 			target_vector[i, indices[i]] = weights[i]
 		#test_sum = np.sum(target_vector, axis=1)
-		target_vector = target_vector.reshape(w, h, self.num_bins)
+		target_vector = target_vector.reshape(self.num_bins, h, w)
 		#test_sum2 = np.sum(target_vector, axis=2)
 		return target_vector
 
 def prepare(set_spec, params):
 	''' params = (batch_size, num_workers, shuffle) '''
 	X = list(set_spec.glob('**/*.TIF'))
+	batch_size, num_workers, shuffle, soft_encoding = params
+	dataset = Dataset(X, soft_encoding)
 
-	dataset = Dataset(X)
-	batch_size, num_workers, shuffle = params
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
 	
 	return train_loader
 
-def return_loaders(batch_size = 25, num_workers = 2, shuffle = True):
+def return_loaders(batch_size = 25, num_workers = 4, shuffle = True, soft_encoding=True):
 	paths = ['../dataset/test_tif', '../dataset/train_tif_subset', '../dataset/val_tif'] #sanity check with only 500 train images
 	#paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
 
 	dataset = {}
-	prepare_partial = partial(prepare, params = (batch_size, num_workers, shuffle))
+	prepare_partial = partial(prepare, params = (batch_size, num_workers, shuffle, soft_encoding))
 	dataset['test'], dataset['train'], dataset['validation'] = map(prepare_partial, paths)
 	
 	return dataset

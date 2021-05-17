@@ -18,22 +18,34 @@ class RarityWeightedLoss():
             in: prediction, target, soft encoded predicted and ground truth Z vectors
             out: loss, scalar value'''
         #cross entropy of z, z_hat (multiply and sum over q's):
-        logs = torch.where(prediction > 0.0, torch.log(prediction), 0.0)
+        zero = torch.tensor(0, dtype=float)
+        logs = torch.where(prediction > zero, torch.tensor(torch.log(prediction), dtype=float), zero)
         cross_entropy = target * logs
-        sum = torch.sum(cross_entropy, dim=2, keepdim=False)
+        sum = torch.sum(cross_entropy, dim=1, keepdim=False)
         weights = self.weighting(target)
         weighted = sum * weights
         loss = -torch.sum(weighted)
-
+        loss.requires_grad = True
         return loss
 
     def weighting(self, Z):
-        rows = Z.shape[0]
-        cols = Z.shape[1]
-        most_likely_bin = torch.argmax(Z, axis=2)#
+        batch_size = Z.shape[0]
+        channels = Z.shape[1]
+        height = Z.shape[2]
+        width = Z.shape[2]
+        most_likely_bin = torch.argmax(Z, axis=1)#channel dimension
 
         v = torch.index_select(self.weight_mix, 0, torch.flatten(most_likely_bin))
-        return v.reshape(rows, cols)/torch.sum(v)
+        new_v = v.reshape(batch_size, 1, height, width)
+        #sum = torch.sum(new_v, dim=[2,3], keepdim=True)
+        #divided = new_v / sum
+        return new_v/torch.sum(v)
+
+class L2Loss():
+    def __init__(self):
+        self.loss = torch.nn.MSELoss()
+    def __call__(self, prediction, target):
+        return self.loss(prediction, target)
 
 
 
