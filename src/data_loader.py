@@ -11,7 +11,6 @@ from torchvision.transforms import Normalize
 import misc.npy_loader.loader as npy
 
 '''import loss to debug'''
-from loss import RarityWeightedLoss, PRIOR_PROBS
 
 POINTS_IN_HULL = npy.load('authors_pts_in_hull')
 bins_centers = npy.load('bin_centers')

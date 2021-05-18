@@ -45,10 +45,11 @@ def gaussian_filter():
 def uniform_distribution():
     filtered_prob = npy.load('filtered_probabilities_gaussian_sigma_5')
     weight = 1/((filtered_prob * 0.5) + 0.5/len(filtered_prob))
-    weight = weight / np.sum(filtered_prob * weight)
+    sum = np.sum(filtered_prob * weight)
+    weight = weight / np.sum(weight)
     print("Weight: ", weight)
     print("Expectation:", np.sum(filtered_prob * weight))
-    npy.save('weight_distribution_mix_with_uniform_distribution', weight)
+    npy.save('weight_distribution_mix_with_uniform_distribution_normalized', weight)
 
 def count_ab_colors():
     # batch_size = 150
@@ -105,5 +106,5 @@ def bin_centers():
 # merge_color_probabilities()
 # display_color_probabilities()
 # gaussian_filter()
-#uniform_distribution()
-bin_centers()
+uniform_distribution()
+#bin_centers()

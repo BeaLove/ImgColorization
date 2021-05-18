@@ -15,7 +15,9 @@ import misc.npy_loader.loader as npy
 import data_loader as dl
 
 import torch.nn as nn
+import warnings
 
+warnings.filterwarnings('ignore')
 
 
 import argparse
@@ -23,14 +25,14 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=1e-2, type=float, help='learning rate') #TODO test initial lr of 1e-2 w cosine annealing
 parser.add_argument('--betas', default = (0.9, 0.999), help='betas for ADAM')
-parser.add_argument('--loss', default='L2', help='loss function')
+parser.add_argument('--loss', default='RarityWeighted', help='loss function')
 opt = parser.parse_args()
 
 """
  Code found from: https://github.com/richzhang/colorization
 """
 
-weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution')
+weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution_normalized')
 
 class Colorization_model(pl.LightningModule):
 	def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=441, loss=opt.loss):
@@ -111,11 +113,11 @@ class Colorization_model(pl.LightningModule):
 		self.model7 = nn.Sequential(*model7)
 		self.model8 = nn.Sequential(*model8)
 
-		self.softmax = nn.Softmax(dim=1)
+		self.softmax = nn.LogSoftmax(dim=1)
 		if loss == 'RarityWeighted':
-			self.model_out = nn.Upsample(scale_factor=4, mode='bilinear')
+			self.model9 = nn.Upsample(scale_factor=4, mode='bilinear')
 		elif loss == 'L2':
-			self.model_out = nn.Sequential(nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
+			self.model9 = nn.Sequential(nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
 										   nn.Upsample(scale_factor=4, mode='bilinear'))
 		#self.model_out = nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False)
 		#self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear')
@@ -131,7 +133,8 @@ class Colorization_model(pl.LightningModule):
 		conv7_3 = self.model7(conv6_3)
 		conv8_3 = self.model8(conv7_3)
 		'''try returning num bins to loss function'''
-		out_reg = self.model_out(self.softmax(conv8_3))
+		upsampled = self.model9(conv8_3)
+		out_reg = self.softmax(upsampled)
 		#out_reg = self.upsample4(self.softmax(conv8_3))
 		#out = self.upsample4(out_reg)
 		return out_reg
@@ -139,18 +142,15 @@ class Colorization_model(pl.LightningModule):
 	def training_step(self, batch, batch_idx):
 		X, y = batch
 		output = self.forward(X)
-		print('got output in training')
-
-		loss = self.loss_criterion(output.float(), y.float())
-		self.log('train_loss', loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
+		loss = self.loss_criterion(output, y)
+		self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=False)
 		return loss
 
 	def validation_step(self,batch,batch_idx):
 		X, y = batch
 		output = self.forward(X)
-		print('got output in val')
 		loss = self.loss_criterion(output, y)
-		self.log('val_loss', loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
+		self.log('val_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=False)
 		return loss
 		
 	def configure_optimizers(self):
@@ -161,6 +161,13 @@ class Colorization_model(pl.LightningModule):
 
 	def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
 		return self(batch)
+
+	def on_epoch_end(self):
+		global_step = self.global_step
+		for name, param in self.named_parameters():
+			self.logger.experiment.add_histogram(name, param.grad, global_step)
+
+
 
 	# @pl.data_loader
 	def train_dataloader(self):
@@ -187,10 +194,10 @@ def run_trainer():
 		mode='max'
 	)
 	'''log learning rate'''
-	lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
+	lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
 	model = Colorization_model(loss=opt.loss) #TODO set loss as RarityWeighted or L2, default: L2
 	logger = loggers.TensorBoardLogger(save_dir = 'logs/')
-	trainer = Trainer(max_epochs=400,
+	trainer = Trainer(max_epochs=10,
 					  logger=logger, #use default tensorboard
 					  log_every_n_steps=20, #log every update step for debugging
 					  limit_train_batches=1.0, #TODO: dummy change this
@@ -198,6 +205,7 @@ def run_trainer():
 					  check_val_every_n_epoch=1,
 					  callbacks=[early_stop_call_back, lr_callback])
 	trainer.fit(model)
+	'''we may not need the below. lightning model can be loaded from last checkpoint'''
 	os.makedirs('trained_models', exist_ok=True)
 	name = 'ColorizationModelOverfitTest.pth'
 	torch.save(model, os.path.join('trained_models', name))

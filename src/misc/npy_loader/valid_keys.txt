@@ -9,3 +9,4 @@ probabilities_test_set
 probabilities_training_set
 probabilities_val_set
 weight_distribution_mix_with_uniform_distribution
+weight_distribution_mix_with_uniform_distribution_normalized
