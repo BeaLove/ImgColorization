@@ -194,15 +194,17 @@ def run_trainer():
 		mode='max'
 	)
 	'''log learning rate'''
-	lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
+	lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
 	model = Colorization_model(loss=opt.loss) #TODO set loss as RarityWeighted or L2, default: L2
 	logger = loggers.TensorBoardLogger(save_dir = 'logs/')
-	trainer = Trainer(max_epochs=10,
+	print("using GPU", torch.cuda.is_available())
+	trainer = Trainer(max_epochs=300,
+					  gpus=1,
 					  logger=logger, #use default tensorboard
 					  log_every_n_steps=20, #log every update step for debugging
-					  limit_train_batches=1.0, #TODO: dummy change this
-					  limit_val_batches=1.0, #TODO: dummy change this
-					  check_val_every_n_epoch=1,
+					  limit_train_batches=1.0,
+					  limit_val_batches=1.0,
+					  check_val_every_n_epoch=5,
 					  callbacks=[early_stop_call_back, lr_callback])
 	trainer.fit(model)
 	'''we may not need the below. lightning model can be loaded from last checkpoint'''
