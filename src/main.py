@@ -165,7 +165,7 @@ class Colorization_model(pl.LightningModule):
 	def on_epoch_end(self):
 		global_step = self.global_step
 		for name, param in self.named_parameters():
-			self.logger.experiment.add_histogram(name, param.grad, global_step)
+			self.logger.experiment.add_histogram(name, param, global_step)
 
 
 

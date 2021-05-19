@@ -9,7 +9,12 @@ class RarityWeightedLoss():
 
     def __init__(self, weight_mix, lamda=0.5, num_bins=441):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+        else:
+            device = torch.device('cpu')
         self.weight_mix = torch.tensor(weight_mix, requires_grad=True)
+        self.weight_mix = self.weight_mix.to(device)
         #self.lamda = lamda
         #self.Q = num_bins
 
