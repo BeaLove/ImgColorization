@@ -15,8 +15,7 @@ class RarityWeightedLoss():
             device = torch.device('cpu')
         self.weight_mix = torch.tensor(weight_mix, requires_grad=True)
         self.weight_mix = self.weight_mix.to(device)
-        #self.lamda = lamda
-        #self.Q = num_bins
+
 
     def __call__(self, prediction, target):
         '''computes the class rebalanced multinomial crossentropy loss

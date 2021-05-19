@@ -24,16 +24,21 @@ def merge_color_probabilities():
     npy.save('full_probabilities', full_prob)
 
 def display_color_probabilities():
+    test = npy.load('filtered_probabilities_gaussian_sigma_5')
     full_prob = npy.load('full_probabilities')
     print("Color probability statistics")
     print("Number of bins containing a color:", np.count_nonzero(full_prob > 0))
-
+    bins = np.arange(-105, 100, 10)
+    non_zero_bins = np.nonzero(full_prob)
+    valid_kernels = [[bins[a], bins[b]] for a,b in zip(non_zero_bins[0], non_zero_bins[1])]
+    npy.save('bins', valid_kernels)
     plt.figure()
     plt.plot(full_prob.reshape(-1))
     plt.show()
 
 def gaussian_filter():
     full_prob = npy.load('full_probabilities')
+    select = np.where(full_prob > 0, full_prob)
     from scipy.ndimage.filters import gaussian_filter
     filtered = gaussian_filter(full_prob.reshape(-1), sigma = 5)
     npy.save('filtered_probabilities_gaussian', filtered)
@@ -98,13 +103,21 @@ def bin_centers():
     kernels = np.asarray(kernels)
     npy.save('bin_centers', kernels)
     useful_probs = np.where(probs > 0)[0]
-    #good_kernels = kernels[]
+    good_kernels = kernels[useful_probs]
     return kernels
 
-
+def get_valid_probs():
+    full_probs = npy.load('full_probabilities')
+    select = np.where(full_probs>0, full_probs)
+    filtered = gaussian_filter(select.reshape(-1), sigma=5)
+    weight = 1 / ((filtered * 0.5) + 0.5 / len(filtered))
+    sum = np.sum(filtered * weight)
+    weight = weight / np.sum(weight)
+    npy.save('weights_normalized', weight)
 # colors = count_ab_colors()
 # merge_color_probabilities()
-# display_color_probabilities()
-# gaussian_filter()
-uniform_distribution()
+display_color_probabilities()
+get_valid_probs()
+#gaussian_filter()
+#uniform_distribution()
 #bin_centers()

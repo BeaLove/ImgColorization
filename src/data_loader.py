@@ -72,7 +72,7 @@ def prepare(set_spec, params):
 	
 	return train_loader
 
-def return_loaders(batch_size = 25, num_workers = 0, shuffle = True, soft_encoding=True):
+def return_loaders(batch_size = 100, num_workers = 3, shuffle = True, soft_encoding=True):
 	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif'] #sanity check with only 500 train images
 	#paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
