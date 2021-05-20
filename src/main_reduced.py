@@ -227,7 +227,7 @@ def run_trainer():
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=20,  # log every update step for debugging
                       limit_train_batches=1.0,
-                      limit_val_batches=1.0,
+                      limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback])
     trainer.fit(model)
