@@ -8,12 +8,12 @@ import numpy as np
 import sklearn.neighbors as knn
 from skimage import io
 from torchvision.transforms import Normalize
-import misc.npy_loader.loader as npy
+#import misc.npy_loader.loader as npy
 
 '''import loss to debug'''
 
-POINTS_IN_HULL = npy.load('authors_pts_in_hull')
-bins_centers = npy.load('bin_centers')
+#POINTS_IN_HULL = npy.load('authors_pts_in_hull')
+bins_centers = np.load('../npy/bins.npy')
 '''don't reinvent the wheel!'''
 class Dataset(torch.utils.data.Dataset):
 	def __init__(self, dataset, soft_encoding = True):
@@ -68,12 +68,13 @@ def prepare(set_spec, params):
 	batch_size, num_workers, shuffle, soft_encoding = params
 	dataset = Dataset(X, soft_encoding)
 
-	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers, shuffle = shuffle)
+	train_loader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, num_workers = num_workers,
+											   shuffle = shuffle, drop_last=False)
 	
 	return train_loader
 
-def return_loaders(batch_size = 100, num_workers = 3, shuffle = True, soft_encoding=True):
-	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif'] #sanity check with only 500 train images
+def return_loaders(batch_size = 128, num_workers = 3, shuffle = True, soft_encoding=True):
+	paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	#paths = ['../dataset/test_tif', '../dataset/train_tif', '../dataset/val_tif']
 	paths = map(Path, paths)
 

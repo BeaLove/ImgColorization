@@ -10,7 +10,8 @@ from pytorch_lightning import Trainer, loggers
 from pytorch_lightning.callbacks import EarlyStopping
 from multiprocessing import Process
 from loss import RarityWeightedLoss, L2Loss
-import misc.npy_loader.loader as npy
+import numpy as np
+#import misc.npy_loader.loader as npy
 
 import data_loader as dl
 
@@ -32,10 +33,10 @@ opt = parser.parse_args()
  Code found from: https://github.com/richzhang/colorization
 """
 
-weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution_normalized')
+weight_mix = np.load('../npy/weight_distribution_mix_with_uniform_distribution_reduced_normalized.npy')
 
 class Colorization_model(pl.LightningModule):
-	def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=441, loss=opt.loss):
+	def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=len(weight_mix), loss=opt.loss):
 		super(Colorization_model, self).__init__()
 		if loss == 'RarityWeighted':
 			self.data_loaders = dl.return_loaders(soft_encoding=True)
@@ -189,7 +190,7 @@ def run_trainer():
 	early_stop_call_back = EarlyStopping(
 		monitor='val_loss',
 		min_delta=0.00,
-		patience=10,
+		patience=5,
 		verbose=False,
 		mode='max'
 	)
@@ -199,12 +200,12 @@ def run_trainer():
 	logger = loggers.TensorBoardLogger(save_dir = 'logs/')
 	print("using GPU", torch.cuda.is_available())
 	trainer = Trainer(max_epochs=300,
-					  gpus=1,
+					  #gpus=1,
 					  logger=logger, #use default tensorboard
 					  log_every_n_steps=20, #log every update step for debugging
 					  limit_train_batches=1.0,
 					  limit_val_batches=1.0,
-					  check_val_every_n_epoch=5,
+					  check_val_every_n_epoch=2,
 					  callbacks=[early_stop_call_back, lr_callback])
 	trainer.fit(model)
 	'''we may not need the below. lightning model can be loaded from last checkpoint'''

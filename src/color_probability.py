@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from skimage import color, io
 from tqdm import tqdm
-import misc.npy_loader.loader as npy
+#import misc.npy_loader.loader as npy
 
 # np.random.seed(0)
 # dummy_data = np.random.randint(low=np.min(kernels), high=np.max(kernels), size=(10, 10, 2))
@@ -24,37 +24,50 @@ def merge_color_probabilities():
     npy.save('full_probabilities', full_prob)
 
 def display_color_probabilities():
-    test = npy.load('filtered_probabilities_gaussian_sigma_5')
-    full_prob = npy.load('full_probabilities')
+    full_prob = np.load('../npy/full_probabilities.npy')
     print("Color probability statistics")
     print("Number of bins containing a color:", np.count_nonzero(full_prob > 0))
     bins = np.arange(-105, 100, 10)
     non_zero_bins = np.nonzero(full_prob)
     valid_kernels = [[bins[a], bins[b]] for a,b in zip(non_zero_bins[0], non_zero_bins[1])]
-    npy.save('bins', valid_kernels)
+    np.save('../npy/bins.npy', valid_kernels)
     plt.figure()
     plt.plot(full_prob.reshape(-1))
     plt.show()
 
 def gaussian_filter():
-    full_prob = npy.load('full_probabilities')
-    select = np.where(full_prob > 0, full_prob)
+    bins = np.load('../npy/bins.npy')
+    full_prob = np.load('../npy/full_probabilities.npy')
+    select = np.where(full_prob > 0)
+    non_zero_probs = np.array([[full_prob[x,y]] for x,y in zip(select[0], select[1])])
+    np.save('../npy/non_zero_full_probs.npy', non_zero_probs)
+    plt.plot(non_zero_probs)
+    plt.title('non zero probabilities')
+    plt.savefig('../npy/filtered_prob_non_zero_sigma5.png')
+    plt.show()
+
     from scipy.ndimage.filters import gaussian_filter
-    filtered = gaussian_filter(full_prob.reshape(-1), sigma = 5)
-    npy.save('filtered_probabilities_gaussian', filtered)
+    filtered = gaussian_filter(non_zero_probs, sigma = 5)
+    np.save('../npy/filtered_probabilities_gaussian_reduced_sigma5.npy', filtered)
     # filtered = full_prob.reshape(-1)
     plt.figure()
     plt.plot(filtered)
-    plt.savefig('Filtered probabilities - gaussian.png')
+    plt.savefig('Filtered probabilities_reduced - gaussian.png')
 
 def uniform_distribution():
-    filtered_prob = npy.load('filtered_probabilities_gaussian_sigma_5')
+    filtered_prob = np.load('../npy/filtered_probabilities_gaussian_reduced_sigma5.npy')
     weight = 1/((filtered_prob * 0.5) + 0.5/len(filtered_prob))
     sum = np.sum(filtered_prob * weight)
-    weight = weight / np.sum(weight)
+    #weight1 = weight/np.sum()
+    weight_norm = weight / np.sum(weight)
     print("Weight: ", weight)
+    sum1 = np.sum(weight)
+    sum_norm = np.sum(weight_norm)
+    print("weight sum", sum1)
+    print('normalized weight sums', sum_norm)
     print("Expectation:", np.sum(filtered_prob * weight))
-    npy.save('weight_distribution_mix_with_uniform_distribution_normalized', weight)
+    np.save('../npy/weight_distribution_mix_with_uniform_distribution_reduced_normalized.npy', weight_norm)
+    print(weight_norm)
 
 def count_ab_colors():
     # batch_size = 150
@@ -116,8 +129,8 @@ def get_valid_probs():
     npy.save('weights_normalized', weight)
 # colors = count_ab_colors()
 # merge_color_probabilities()
-display_color_probabilities()
-get_valid_probs()
+#display_color_probabilities()
+#get_valid_probs()
 #gaussian_filter()
-#uniform_distribution()
+uniform_distribution()
 #bin_centers()

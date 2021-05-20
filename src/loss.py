@@ -1,13 +1,13 @@
 import torch
 import numpy as np
-import misc.npy_loader.loader as npy
+#import misc.npy_loader.loader as npy
 
 
-weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution_normalized')
+#weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution_normalized')
 #PRIOR_PROBS = npy.load('full_probabilities')
 class RarityWeightedLoss():
 
-    def __init__(self, weight_mix, lamda=0.5, num_bins=441):
+    def __init__(self, weight_mix):
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
@@ -27,7 +27,7 @@ class RarityWeightedLoss():
         width = prediction.shape[3]
         #zero = torch.tensor(0, dtype=float)
         #logs = torch.where(prediction > 0.0, torch.tensor(torch.log(prediction), dtype=float), 0.0)
-        logs = torch.log(prediction)
+        #logs = torch.log(prediction)
         cross_entropy = target * prediction
         sum = torch.sum(cross_entropy, dim=1, keepdim=True)
         #loss = -torch.sum(sum)/(batch_size*height*width*30)
