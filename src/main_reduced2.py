@@ -46,25 +46,25 @@ class Colorization_model_Reduced(pl.LightningModule):
         elif loss == 'L2':
             self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=False)
             self.loss_criterion = L2Loss()
-        model1 = [nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True), ]
+        model1 = [nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1, bias=True), ]
         model1 += [nn.ReLU(True), ]
-        model1 += [nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1, bias=True), ]
+        model1 += [nn.Conv2d(16, 16, kernel_size=3, stride=2, padding=1, bias=True), ]
         model1 += [nn.ReLU(True), ]
-        model1 += [norm_layer(64), ]
+        model1 += [norm_layer(16), ]
 
-        model2 = [nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1, bias=True), ]
+        model2 = [nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1, bias=True), ]
         model2 += [nn.ReLU(True), ]
-        model2 += [nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1, bias=True), ]
+        model2 += [nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, bias=True), ]
         model2 += [nn.ReLU(True), ]
-        model2 += [norm_layer(128), ]
+        model2 += [norm_layer(32), ]
 
-        model3 = [nn.Conv2d(128, 256, kernel_size=3, dilation=2, stride=1, padding=2, bias=True), ]
+        model3 = [nn.Conv2d(32, 64, kernel_size=3, dilation=2, stride=1, padding=2, bias=True), ]
         model3 += [nn.ReLU(True), ]
-        model3 += [nn.Conv2d(256, 256, kernel_size=3, dilation=2, stride=1, padding=2, bias=True), ]
+        model3 += [nn.Conv2d(64, 128, kernel_size=3, dilation=2, stride=1, padding=2, bias=True), ]
         model3 += [nn.ReLU(True), ]
-        model3 += [norm_layer(256), ]
+        model3 += [norm_layer(128), ]
 
-        model4 = nn.Conv2d(256, num_bins, kernel_size=3, dilation=2, stride=1, padding=2, bias=True)
+        model4 = nn.Conv2d(128, num_bins, kernel_size=3, dilation=2, stride=1, padding=2, bias=True)
 
 
         '''model4 = [nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=True), ]
@@ -221,13 +221,13 @@ def run_trainer():
     else:
         print("using CPU")
         num_gpus=0
-    trainer = Trainer(min_epochs=4,
-                      max_epochs=100,
+    trainer = Trainer(max_epochs=max_epochs,
+                      min_epochs=4,
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=20,  # log every update step for debugging
                       limit_train_batches=1.0,
-                      limit_val_batches=1.0,
+                      limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback])
     trainer.fit(model)
