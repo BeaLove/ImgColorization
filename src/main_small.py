@@ -221,7 +221,7 @@ def run_trainer():
     else:
         print("using CPU")
         num_gpus=0
-    trainer = Trainer(min_epochs=4,
+    trainer = Trainer(
                       max_epochs=100,
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
