@@ -231,10 +231,7 @@ def run_trainer():
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback])
     trainer.fit(model)
-    '''we may not need the below. lightning model can be loaded from last checkpoint'''
-    os.makedirs('trained_models', exist_ok=True)
-    name = 'ColorizationModelOverfitTest.pth'
-    torch.save(model, os.path.join('trained_models', name))
+
 
 
 if __name__ == '__main__':

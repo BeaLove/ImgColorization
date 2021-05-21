@@ -154,7 +154,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         X, y = batch
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
-        self.log('val_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+        self.log('val_loss', loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -209,10 +209,10 @@ def run_trainer():
     '''log learning rate'''
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
 
-    max_epochs = 100
+    max_epochs = 50
     batch_size=128
     T_max = np.floor(100000/batch_size)*max_epochs
-
+    "/logs/default/version_87/checkpoints/epoch=2-step=2345.ckpt"
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
     logger = loggers.TensorBoardLogger(save_dir='logs/')
     if torch.cuda.is_available():
@@ -221,7 +221,7 @@ def run_trainer():
     else:
         print("using CPU")
         num_gpus=0
-    trainer = Trainer(max_epochs=max_epochs,
+    '''trainer = Trainer(max_epochs=max_epochs,
                       min_epochs=4,
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
@@ -229,12 +229,18 @@ def run_trainer():
                       limit_train_batches=1.0,
                       limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
-                      callbacks=[early_stop_call_back, lr_callback])
+                      callbacks=[lr_callback])'''
+    trainer = Trainer(resume_from_checkpoint="logs/default/version_89/checkpoints/epoch=4-step=3909.ckpt",
+                      max_epochs=max_epochs,
+                      gpus=num_gpus,
+                      logger=logger,  # use default tensorboard
+                      log_every_n_steps=20,  # log every update step for debugging
+                      limit_train_batches=1.0,
+                      limit_val_batches=0.7,
+                      check_val_every_n_epoch=1,
+                      callbacks=[lr_callback, early_stop_call_back]
+                      )
     trainer.fit(model)
-    '''we may not need the below. lightning model can be loaded from last checkpoint'''
-    os.makedirs('trained_models', exist_ok=True)
-    name = 'ColorizationModelOverfitTest.pth'
-    torch.save(model, os.path.join('trained_models', name))
 
 
 if __name__ == '__main__':
