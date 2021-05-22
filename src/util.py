@@ -50,7 +50,7 @@ def load_image_raw(path, resize = False):
 	return img
 
 def split_channels(img):
-	L, a, b = img[np.newaxis, :,:,0], img[:,:,1], img[:,:,2]
+	L, a, b = img[np.newaxis, np.newaxis, :,:,0], img[:,:,1], img[:,:,2]
 	return L, a, b
 
 def data2rgb(im):

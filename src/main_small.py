@@ -200,11 +200,11 @@ class Colorization_model_Reduced(pl.LightningModule):
 
 def run_trainer():
     early_stop_call_back = EarlyStopping(
-        monitor='avg_val_loss',
+        monitor='val_loss_epoch',
         min_delta=0.00,
         check_finite=True,
         patience=3, #results in early stop after 9 epochs since val checked every 3 epochs
-        verbose=False,
+        verbose=True,
         check_on_train_epoch_end=False,
         mode='min'
     )
@@ -214,12 +214,11 @@ def run_trainer():
     checkpoint_callback = ModelCheckpoint(
         save_last=True,
         verbose=True,
-        monitor='val_loss',
         every_n_val_epochs=1
     )
 
 
-    max_epochs = 100
+    max_epochs = 50
     batch_size=128
     T_max = np.floor(100000/batch_size)*max_epochs
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
