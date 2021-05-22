@@ -51,6 +51,8 @@ class L2Loss():
     def __init__(self):
         self.loss = torch.nn.MSELoss()
     def __call__(self, prediction, target):
-        return self.loss(prediction, target)
+        target = torch.tensor(target, dtype=float)
+        loss = torch.tensor(self.loss(prediction, target), dtype=float, requires_grad=True)
+        return loss
 
 

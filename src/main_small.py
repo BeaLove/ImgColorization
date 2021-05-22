@@ -28,7 +28,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=3e-4, type=float,
                     help='learning rate')  # TODO test initial lr of 1e-2 w cosine annealing
 parser.add_argument('--betas', default=(0.9, 0.999), help='betas for ADAM')
-parser.add_argument('--loss', default='RarityWeighted', help='loss function')
+parser.add_argument('--loss', default='L2', help='loss function')
 opt = parser.parse_args()
 
 """
@@ -149,7 +149,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         X, y = batch
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
-        self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+        self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -212,17 +212,16 @@ def run_trainer():
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
 
     checkpoint_callback = ModelCheckpoint(
-        save_best_only=False,
         save_last=True,
         verbose=True,
         monitor='val_loss',
         every_n_val_epochs=1
     )
 
+
     max_epochs = 100
     batch_size=128
     T_max = np.floor(100000/batch_size)*max_epochs
-
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
     logger = loggers.TensorBoardLogger(save_dir='logs/')
     if torch.cuda.is_available():
@@ -236,8 +235,8 @@ def run_trainer():
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=20,  # log every update step for debugging
-                      limit_train_batches=1.0,
-                      limit_val_batches=0.7,
+                      limit_train_batches=0.2,
+                      limit_val_batches=0.1,
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback, checkpoint_callback])
     trainer.fit(model)

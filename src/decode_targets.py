@@ -5,6 +5,7 @@ import numpy as np
 import util
 from skimage import io, color
 from main import Colorization_model
+from main_mini import Colorization_model_Reduced
 from pytorch_lightning import LightningModule
 
 def _decode_mode(data):
@@ -72,16 +73,12 @@ def load_and_decode(img_path,  last_checkpoint_path, model_name = None, resize=F
 	'''in: img_path string, model: colorizer model name, args: 'annealing', 'mean', or 'mode', type of decoding
 		loads img, splits channels and colorizes the bw
 		out: colorized img'''
-	img = util.load_image_raw(img_path, resize=False)
-	model = Colorization_model()
+	#img = util.load_image_raw(img_path, resize=False)
+	img = io.imread(img_path)
 	'''optional using Lightning'''
-	if model_name == None:
-		print("must specify model name")
-		raise ValueError
 	pretrained_model = LightningModule.load_from_checkpoint(last_checkpoint_path)
-	pretrained_model.freeze()
-
-	colorizer = model.load_state_dict(torch.load(model_name)) #TODO is this the correct way to load a trained model?
+	pretrained_model.eval()
+	#TODO is this the correct way to load a trained model?
 	L, a, b = util.split_channels(img)
 	L = torch.tensor(L)
 	#Y = colorizer.predict(L)
@@ -97,6 +94,7 @@ def load_and_decode(img_path,  last_checkpoint_path, model_name = None, resize=F
 if __name__ == '__main__':
 	path = 'test_color_image.jpg'
 	path = 'input_img/test_tif_0.TIF'
+	chkpt_path = 'version_93/epoch=8-step=7037.ckpt'
 	model = 'trained_models/ColorizationModelOverfitTest.pth'
 	load_and_decode(path, model_name=model, resize=False)
 	X, Y, im = util.load_image_softencoded(path)

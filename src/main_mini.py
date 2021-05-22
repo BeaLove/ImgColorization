@@ -230,7 +230,7 @@ def run_trainer():
                       limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
                       callbacks=[lr_callback])'''
-    trainer = Trainer(resume_from_checkpoint="logs/default/version_89/checkpoints/epoch=4-step=3909.ckpt",
+    trainer = Trainer(resume_from_checkpoint="logs/default/version_92/checkpoints/epoch=6-step=5473.ckpt",
                       max_epochs=max_epochs,
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
