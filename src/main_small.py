@@ -180,7 +180,6 @@ class Colorization_model_Reduced(pl.LightningModule):
         global_step = self.global_step
         for name, param in self.named_parameters():
             self.logger.experiment.add_histogram(name, param, global_step)
-            self.logger.experiment.add_histogram(name, param.grad, global_step)
 
     # @pl.data_loader
     def train_dataloader(self):
