@@ -215,7 +215,6 @@ def run_trainer():
     checkpoint_callback = ModelCheckpoint(
         save_last=True,
         verbose=True,
-        save_top_k=5,
         every_n_val_epochs=1
     )
 
