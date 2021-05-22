@@ -180,6 +180,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         global_step = self.global_step
         for name, param in self.named_parameters():
             self.logger.experiment.add_histogram(name, param, global_step)
+            self.logger.experiment.add_histogram(name, param.grad, global_step)
 
     # @pl.data_loader
     def train_dataloader(self):
@@ -203,7 +204,7 @@ def run_trainer():
         monitor='val_loss_epoch',
         min_delta=0.00,
         check_finite=True,
-        patience=3, #results in early stop after 9 epochs since val checked every 3 epochs
+        patience=20,
         verbose=True,
         check_on_train_epoch_end=False,
         mode='min'
@@ -214,11 +215,12 @@ def run_trainer():
     checkpoint_callback = ModelCheckpoint(
         save_last=True,
         verbose=True,
+        save_top_k=5,
         every_n_val_epochs=1
     )
 
 
-    max_epochs = 50
+    max_epochs = 100
     batch_size=128
     T_max = np.floor(100000/batch_size)*max_epochs
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
@@ -234,8 +236,8 @@ def run_trainer():
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=20,  # log every update step for debugging
-                      limit_train_batches=0.2,
-                      limit_val_batches=0.1,
+                      limit_train_batches=1.0,
+                      limit_val_batches=1.0,
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback, checkpoint_callback])
     trainer.fit(model)

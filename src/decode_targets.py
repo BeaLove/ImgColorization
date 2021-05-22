@@ -36,24 +36,26 @@ def _decode_mean(data):
 
 def _decode_annealing(data):
 	'''annealed mean color decoding
-		in: data tensor (64,64,441)
+		in: data tensor (268, 64, 64)
+		out: annealed mean color prediction
 		'''
 	T = .38
 	data = data[0,:,:,:]
-	(Q, H, W) = data.shape
+	(Q,H,W) = data.shape
 	data = data.cpu().detach().numpy()
-	annealed = np.zeros((H, W, Q))
+	out = np.zeros((2,H,W))
 	for x in range(H):
 		for y in range(W):
-			q = data[x,y]
-			sum = np.sum(np.exp(np.log(q/T)))
-			annealed[:,x, y] = np.where(q > 0, np.exp(np.log(q/T))/sum, 0)
-	y_idx = np.nonzero(annealed)[2]
-	q_dim_shape = int(y_idx.size / (64 * 64))
-	y = util.BIN_CENTERS[y_idx]
-	y = y.reshape(q_dim_shape, H, W, 2)
-	annealed_mean = np.mean(y, axis=0)
-	return annealed_mean
+			q = data[:,x,y]
+			sum = np.sum(np.exp(q/T))
+			annealed= np.exp(q/T)/sum
+			top_5 = np.argpartition(annealed, kth=5)[:5]
+			colors = util.BIN_CENTERS[top_5]
+			mean = np.mean(colors, axis=0)
+			out[:,x,y] = mean
+	#y_idx = np.nonzero(annealed)[2]
+
+	return out
 
 
 def decode_targets(data, algorithm = 'annealing'):
@@ -86,11 +88,15 @@ def load_and_decode(img_path, last_checkpoint_path, model_name = None, resize=Fa
 	L = torch.tensor(L/100, dtype=torch.float32)
 	#Y = colorizer.predict(L)
 	prediction = pretrained_model(L)
+	#prediction = prediction.to(memory_format=torch.channels_last)
 	ab_channels = decode_targets(prediction, algorithm=algorithm)
+	#L = L.to(memory_format=torch.channels_last)[0,:,:,:]
 	im_stitched = util.stich_image(L[0,:,:,:], ab_channels)
 	im_decoded = util.data2rgb(im_stitched)
+	io.imshow(im_decoded)
+	io.show()
 	os.makedirs('outputs', exist_ok=True)
-	io.imsave(os.path.join('outputs', img_path), im_decoded)
+	io.imsave('outputs/out_img.jpg', im_decoded)
 
 
 

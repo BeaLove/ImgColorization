@@ -31,11 +31,12 @@ def load_image(path, shape = (64, 64), resize = False):
 	#return im_lab, im_raw
 
 def stich_image(L, ab_channels):
-	'''in: L numpy array (64,64), ab_channels numpy array (64,64,2)
+	'''in: L numpy array (1,64,64), ab_channels numpy array (2,64,64)
 		operation: concatenates
 		returns: LAB-image as (64,64,3)'''
-		
-	out = np.concatenate((L[:,:,np.newaxis], ab_channels), axis=2)
+
+	out = np.concatenate((L, ab_channels), axis=0)
+	out = np.moveaxis(out,0,2)
 	return out
 
 def load_image_raw(path, resize = False):
@@ -55,6 +56,7 @@ def split_channels(img):
 
 def data2rgb(im):
 	""" reverts image back to rgb """
+	#im = im.reshape(64,64,3)
 	return color.lab2rgb(im)
 	#raise Exception("Not implemented")
 
