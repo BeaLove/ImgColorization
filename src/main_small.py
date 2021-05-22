@@ -18,6 +18,8 @@ import data_loader as dl
 import torch.nn as nn
 import warnings
 
+from pytorch_lightning.callbacks import ModelCheckpoint
+
 warnings.filterwarnings('ignore')
 
 import argparse
@@ -154,7 +156,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         X, y = batch
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
-        self.log('val_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=False)
+        self.log('val_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -198,7 +200,7 @@ class Colorization_model_Reduced(pl.LightningModule):
 
 def run_trainer():
     early_stop_call_back = EarlyStopping(
-        monitor='val_loss',
+        monitor='avg_val_loss',
         min_delta=0.00,
         check_finite=True,
         patience=3, #results in early stop after 9 epochs since val checked every 3 epochs
@@ -208,6 +210,14 @@ def run_trainer():
     )
     '''log learning rate'''
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
+
+    checkpoint_callback = ModelCheckpoint(
+        save_best_only=False,
+        save_last=True,
+        verbose=True,
+        monitor='val_loss',
+        every_n_val_epochs=1
+    )
 
     max_epochs = 100
     batch_size=128
@@ -229,7 +239,7 @@ def run_trainer():
                       limit_train_batches=1.0,
                       limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
-                      callbacks=[early_stop_call_back, lr_callback])
+                      callbacks=[early_stop_call_back, lr_callback, checkpoint_callback])
     trainer.fit(model)
 
 
