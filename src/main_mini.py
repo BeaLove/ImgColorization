@@ -145,8 +145,9 @@ class Colorization_model_Reduced(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         X, y = batch
         output = self.forward(X)
+        print(output)
         loss = self.loss_criterion(output, y)
-        print(loss)
+        #print(loss)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
