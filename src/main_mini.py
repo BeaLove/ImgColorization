@@ -146,6 +146,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         X, y = batch
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
+        print(loss)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
