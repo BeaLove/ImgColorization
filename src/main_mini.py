@@ -117,7 +117,7 @@ class Colorization_model_Reduced(pl.LightningModule):
             self.out_layer = nn.Sequential(nn.Upsample(scale_factor=4, mode='bilinear'), nn.LogSoftmax(dim=1))
 
         elif loss == 'L2':
-            self.model5 = nn.Sequential(
+            self.out_layer = nn.Sequential(
                 nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
                 nn.Upsample(scale_factor=4, mode='bilinear'))
 
