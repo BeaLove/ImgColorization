@@ -23,7 +23,7 @@ def load_image(path, shape = (64, 64), resize = False):
 	if resize:
 		im_raw = resize_img(im_raw, shape = shape)
 
-	if os.path.splitext()[-1] == 'tif':
+	if os.path.splitext(path)[-1] == 'tif':
 		return im_raw
 	else:
 		im_lab = color.rgb2lab(im_raw/255)
@@ -44,7 +44,8 @@ def load_image_raw(path, resize = False):
 	if resize:
 		img = resize_img(io.imread(path))
 	else:
-		if os.path.splitext(path) == 'tif':
+		ext = os.path.splitext(path)[-1].lower()
+		if ext == '.tif':
 			img = io.imread(path)
 		else:
 			img = color.rgb2lab(io.imread(path)/255)
@@ -68,7 +69,7 @@ def resize_img(im, shape = (64, 64)):
 
 def load_image_softencoded(path, resize = True):
 	""" This will load one image exactly as the current dataloader given a path to a jpg. """
-	im, _ = load_image(path, resize = resize)
+	im = load_image(path, resize = resize)
 
 	X, Y = im[np.newaxis, :, :, 0], im[:, :, 1:]
 	X = torch.tensor(X, dtype=torch.float32)
@@ -79,7 +80,7 @@ def _softEncoding(pixels, sigma=5):
 	'''args: image a,b channels H*W
 		Gets 5 nearest neighbors of the quantized bins in output space (313)
 		weighted by Gaussian kernel, sigma=5, See Colorful Image Colorization Zhang, Isola, Efros
-		returns: soft-encoded target matrix H*W*313'''
+		returns: soft-encoded target matrix H*W*268'''
 	num_bins = len(BIN_CENTERS)
 	kernel_normalize = np.max(np.abs(BIN_CENTERS))
 	w = pixels.shape[0]

@@ -16,8 +16,8 @@ def _decode_mode(data):
 	warnings.warn("Build not passing")
 	data = data[0, :, :, :]
 	(Q, H, W) = data.shape
-	y_idx = torch.argmax(data, dim=2, keepdim=False)
-	y = torch.index_select(torch.tensor(util.BIN_CENTERS), 0, y_idx.reshape(-1)).reshape(H,W,2)
+	y_idx = torch.argmax(data, dim=0, keepdim=False)
+	y = torch.index_select(torch.tensor(util.BIN_CENTERS), 0, y_idx.reshape(-1)).reshape(2, H,W,)
 	a = y[:,:,0]
 	b = y[:,:,1]
 	return y.cpu().detach().numpy()
@@ -26,13 +26,16 @@ def _decode_mean(data):
 	data = data[0, :, :, :]
 	(Q, H, W) = data.shape
 	data = data.cpu().detach().numpy()
-	y_idx = np.nonzero(data)[2]
-	q_dim_shape = int(y_idx.size/(64*64))
-	y = util.BIN_CENTERS[y_idx]
-	y = y.reshape(H,W,q_dim_shape,2)
-	mean = np.mean(y,axis=2)
-	y = y_idx.reshape(H, W, q_dim_shape)
-	return mean
+	out = np.zeros((2, H, W))
+	for x in range(H):
+		for y in range(W):
+			q = data[:,x,y]
+			top_5 = np.argsort(q)[:5]
+			colors = util.BIN_CENTERS[top_5]
+			mean = np.mean(colors, axis=0)
+			out[:,x,y] = mean
+	#y_idx = np.nonzero(data)[2]
+	return out
 
 def _decode_annealing(data):
 	'''annealed mean color decoding
@@ -49,7 +52,7 @@ def _decode_annealing(data):
 			q = data[:,x,y]
 			sum = np.sum(np.exp(q/T))
 			annealed= np.exp(q/T)/sum
-			top_5 = np.argpartition(annealed, kth=5)[:5]
+			top_5 = np.argsort(annealed)[:5]
 			colors = util.BIN_CENTERS[top_5]
 			mean = np.mean(colors, axis=0)
 			out[:,x,y] = mean
@@ -74,11 +77,12 @@ def decode_targets(data, algorithm = 'annealing'):
 		raise ValueError(f'algorithm = {algorithm} not a valid argument')
 
 def load_and_decode(img_path, last_checkpoint_path, model_name = None, resize=False, algorithm= 'annealing'):
-	'''in: img_path string, model: colorizer model name, args: 'annealing', 'mean', or 'mode', type of decoding
-		loads img, splits channels and colorizes the bw
+	'''in: img_path string, model: colorizer model name,
+		args: 'annealing', 'mean', or 'mode', type of decoding
+		loads a color image, splits channels and colorizes the bw channel from custom loss function model prediction
 		out: colorized img'''
-	#img = util.load_image_raw(img_path, resize=False)
-	img = io.imread(img_path)
+	img = util.load_image_raw(img_path, resize=False)
+
 	'''optional using Lightning'''
 	model = Colorization_model_Reduced()
 	pretrained_model = model.load_from_checkpoint(last_checkpoint_path)
@@ -86,26 +90,27 @@ def load_and_decode(img_path, last_checkpoint_path, model_name = None, resize=Fa
 	#TODO is this the correct way to load a trained model?
 	L, a, b = util.split_channels(img)
 	L = torch.tensor(L/100, dtype=torch.float32)
-	#Y = colorizer.predict(L)
+
 	prediction = pretrained_model(L)
-	#prediction = prediction.to(memory_format=torch.channels_last)
+
 	ab_channels = decode_targets(prediction, algorithm=algorithm)
-	#L = L.to(memory_format=torch.channels_last)[0,:,:,:]
-	im_stitched = util.stich_image(L[0,:,:,:], ab_channels)
-	im_decoded = util.data2rgb(im_stitched)
+
+	im_stitched = util.stich_image(L[0,:,:,:]*100, ab_channels)
+	im_decoded = np.round(util.data2rgb(im_stitched)*255)
 	io.imshow(im_decoded)
 	io.show()
 	os.makedirs('outputs', exist_ok=True)
-	io.imsave('outputs/out_img.jpg', im_decoded)
+	save_path = path.split(sep = '/')[-1]
+	io.imsave('outputs/'+algorithm+save_path, im_decoded)
 
 
 
 if __name__ == '__main__':
-	path = 'input_img/test_color_image.jpg'
-	path = 'input_img/test_tif_0.TIF'
+	path = 'input_img/test_color_img.JPEG'
+	#path = 'input_img/test_tif_0.TIF'
 	chkpt_path = 'version_93/epoch=8-step=7037.ckpt'
 	model = 'trained_models/ColorizationModelOverfitTest.pth'
-	load_and_decode(path, chkpt_path, model_name=model, resize=False)
+	load_and_decode(path, chkpt_path, model_name=model, algorithm='annealing', resize=False)
 	X, Y, im = util.load_image_softencoded(path)
 
 	bc = torch.tensor(util.BIN_CENTERS)

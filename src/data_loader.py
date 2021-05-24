@@ -36,7 +36,7 @@ class Dataset(torch.utils.data.Dataset):
 		if self.soft_encoding:
 			Y = torch.tensor(self.softEncoding(Y, sigma=5))
 		else:
-			Y = torch.tensor(np.moveaxis(Y, 2, 0))/self.kernel_normalize #switch to channel first format
+			Y = torch.tensor(np.moveaxis(Y, 2, 0), dtype=torch.float32)/self.kernel_normalize #switch to channel first format
 		return X, Y
 		
 	def __len__(self):
@@ -85,5 +85,6 @@ def return_loaders(batch_size = 64, num_workers = 5, shuffle = True, soft_encodi
 	return dataset
 
 
+return_loaders()
 
 

@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=3e-4, type=float,
                     help='learning rate')  # TODO test initial lr of 1e-2 w cosine annealing
 parser.add_argument('--betas', default=(0.9, 0.999), help='betas for ADAM')
-parser.add_argument('--loss', default='RarityWeighted', help='loss function')
+parser.add_argument('--loss', default='L2', help='loss function')
 opt = parser.parse_args()
 
 """
@@ -65,7 +65,6 @@ class Colorization_model_Reduced(pl.LightningModule):
         model3 += [norm_layer(128), ]
 
         model4 = nn.Conv2d(128, num_bins, kernel_size=3, dilation=2, stride=1, padding=2, bias=True)
-
 
         '''model4 = [nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=True), ]
         model4 += [nn.ReLU(True), ]
@@ -163,7 +162,6 @@ class Colorization_model_Reduced(pl.LightningModule):
         loss = self.loss_criterion(output, y)
         self.log("test_loss", loss)
 
-
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=opt.lr, betas=opt.betas, weight_decay=1e-5)
         # T_max should be number of cycles to vary the learning rate, i set to 3 (12,000 steps if batch size is 25)
@@ -174,10 +172,10 @@ class Colorization_model_Reduced(pl.LightningModule):
     def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
         return self(batch)
 
-    def on_epoch_end(self):
+    def on_train_epoch_end(self):
         global_step = self.global_step
         for name, param in self.named_parameters():
-            self.logger.experiment.add_histogram(name, param, global_step)
+            self.logger.experiment.add_histogram(name, param.grad, global_step)
 
     # @pl.data_loader
     def train_dataloader(self):
@@ -201,7 +199,7 @@ def run_trainer():
         monitor='val_loss_epoch',
         min_delta=0.00,
         check_finite=True,
-        patience=3, #results in early stop after 9 epochs since val checked every 3 epochs
+        patience=3,
         verbose=True,
         check_on_train_epoch_end=False,
         mode='min'
@@ -237,13 +235,13 @@ def run_trainer():
                       limit_val_batches=0.7,
                       check_val_every_n_epoch=1,
                       callbacks=[lr_callback])'''
-    trainer = Trainer(resume_from_checkpoint="logs/default/version_92/checkpoints/epoch=6-step=5473.ckpt",
+    trainer = Trainer(
                       max_epochs=max_epochs,
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
-                      log_every_n_steps=20,  # log every update step for debugging
-                      limit_train_batches=1.0,
-                      limit_val_batches=0.7,
+                      log_every_n_steps=1,  # log every update step for debugging
+                      limit_train_batches=0.1,
+                      limit_val_batches=0.1,
                       check_val_every_n_epoch=1,
                       callbacks=[lr_callback, early_stop_call_back, checkpoint_callback]
                       )
