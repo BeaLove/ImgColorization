@@ -149,6 +149,7 @@ class Colorization_model_Reduced(torch.nn.Module):
         loss.backward()
         self.optimizer.step()
         self.logger.add_scalar('train_loss_step', loss)
+        print('lr', self.scheduler.get_last_lr())
         #self.logger.add_scalar('learning_rate',  self.scheduler.get_last_lr())
         self.scheduler.step()
         return loss
