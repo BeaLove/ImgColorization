@@ -5,9 +5,10 @@ import numpy as np
 
 #weight_mix = npy.load('weight_distribution_mix_with_uniform_distribution_normalized')
 #PRIOR_PROBS = npy.load('full_probabilities')
-class RarityWeightedLoss():
+class RarityWeightedLoss(torch.nn.Module):
 
     def __init__(self, weight_mix):
+        super().__init__(RarityWeightedLoss)
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
