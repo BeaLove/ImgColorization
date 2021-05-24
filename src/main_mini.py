@@ -168,8 +168,9 @@ class Colorization_model_Reduced(pl.LightningModule):
 
     def on_train_epoch_end(self):
         global_step = self.global_step
+        print(self.optimizers().state)
         for name, param in self.named_parameters():
-            self.logger.experiment.add_histogram(name, param.grad, global_step)
+            self.logger.experiment.add_histogram(name + " grad", param.grad, global_step)
             #self.logger.experiment.add_histogram(name, param, global_step)
 
 
@@ -236,8 +237,8 @@ def run_trainer():
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=1,  # log every update step for debugging
-                      limit_train_batches=1.0,
-                      limit_val_batches=1.0,
+                      limit_train_batches=0.1,
+                      limit_val_batches=0.1,
                       check_val_every_n_epoch=1,
                       callbacks=[lr_callback, early_stop_call_back, checkpoint_callback]
                       )
