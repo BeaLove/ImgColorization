@@ -121,11 +121,6 @@ class Colorization_model_Reduced(pl.LightningModule):
                 nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
                 nn.Upsample(scale_factor=4, mode='bilinear'))
             self.softmax = nn.Softmax(dim=1)
-        # self.model_out = nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False)
-        # self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear')
-
-    # self.model_out = nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False)
-    # self.upsample4 = nn.Upsample(scale_factor=4, mode='bilinear')
 
     def forward(self, X):
         conv1_2 = self.model1(X)
@@ -138,16 +133,13 @@ class Colorization_model_Reduced(pl.LightningModule):
         '''try returning num bins to loss function'''
         #upsampled = self.model5(conv4_3)
         out_reg = self.softmax(upsampled)
-        # out_reg = self.upsample4(self.softmax(conv8_3))
-        # out = self.upsample4(out_reg)
+
         return out_reg
 
     def training_step(self, batch, batch_idx):
         X, y = batch
         output = self.forward(X)
-        print(output)
         loss = self.loss_criterion(output, y)
-        #print(loss)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
@@ -167,9 +159,9 @@ class Colorization_model_Reduced(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=opt.lr, betas=opt.betas, weight_decay=1e-5)
         # T_max should be number of cycles to vary the learning rate, i set to 3 (12,000 steps if batch size is 25)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-7,
-                                                               T_max=self.T_max)  # TODO comment out if you don't want to mess with
-        return [optimizer], [scheduler]
+        #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-7,
+                                                               #T_max=self.T_max)  # TODO comment out if you don't want to mess with
+        return optimizer
 
     def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
         return self(batch)
