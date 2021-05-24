@@ -47,7 +47,7 @@ class Colorization_model_Reduced(pl.LightningModule):
             self.loss_criterion = RarityWeightedLoss(weight_mix)
         elif loss == 'L2':
             self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=False)
-            self.loss_criterion = L2Loss()
+            self.loss_criterion = torch.nn.MSELoss()
         model1 = [nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=True), ]
         model1 += [nn.ReLU(True), ]
         model1 += [nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=1, bias=True), ]
