@@ -40,7 +40,6 @@ class Colorization_model_Reduced(pl.LightningModule):
     def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=len(weight_mix), loss=opt.loss, batch_size=128, T_max=39000):
         super(Colorization_model_Reduced, self).__init__()
         self.T_max = T_max
-        self.automatic_optimization = False
         if loss == 'RarityWeighted':
             self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=True)
             self.loss_criterion = RarityWeightedLoss(weight_mix)
@@ -145,14 +144,11 @@ class Colorization_model_Reduced(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         X, y = batch
-        opt = self.optimizers()
-        opt.zero_grad()
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
-        self.manual_backward(loss)
+        print(loss)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        opt.step()
-        #return loss
+        return loss
 
     def validation_step(self, batch, batch_idx):
         X, y = batch
