@@ -165,7 +165,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         return self(batch)
 
     def on_train_epoch_end(self):
-        global_step = self.global_ste
+        global_step = self.global_step
         for name, param in self.named_parameters():
             self.logger.experiment.add_histogram(name + " grad", param.grad, global_step)
             self.logger.experiment.add_histogram(name, param, global_step)
