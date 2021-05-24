@@ -157,7 +157,7 @@ class Colorization_model_Reduced(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=opt.lr, betas=opt.betas, weight_decay=1e-5)
         # T_max should be number of cycles to vary the learning rate, computed by batch size and epoch before initialization
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-7,
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-8,
                                                                T_max=self.T_max)  # TODO comment out if you don't want to mess with
         return [optimizer], [scheduler]
 
