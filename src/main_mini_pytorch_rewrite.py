@@ -199,7 +199,7 @@ def run_trainer():
     "/logs/default/version_87/checkpoints/epoch=2-step=2345.ckpt"
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size,
                                        T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
-
+    model = model.to(device)
     bar = tqdm(range(max_epochs))
     for epoch in bar:
         for batch in model.train_dataloader():
