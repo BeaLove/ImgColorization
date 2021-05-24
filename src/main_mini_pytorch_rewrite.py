@@ -46,7 +46,7 @@ class Colorization_model_Reduced(torch.nn.Module):
             self.loss_criterion = RarityWeightedLoss(weight_mix)
         elif loss == 'L2':
             self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=False)
-            self.loss_criterion = L2Loss()
+            self.loss_criterion = torch.nn.MSELoss()
         model1 = [nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1, bias=True), ]
         model1 += [nn.ReLU(True), ]
         model1 += [nn.Conv2d(16, 16, kernel_size=3, stride=2, padding=1, bias=True), ]
@@ -179,7 +179,6 @@ class Colorization_model_Reduced(torch.nn.Module):
             print("name", name)
             print("requires grad", param.requires_grad)
             print('grad', param.grad)
-            print("param", param)
 
     # @pl.data_loader
     def train_dataloader(self):
