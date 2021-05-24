@@ -23,7 +23,7 @@ warnings.filterwarnings('ignore')
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--lr', default=3e-4, type=float,
+parser.add_argument('--lr', default=3e-5, type=float,
                     help='learning rate')  # TODO test initial lr of 1e-2 w cosine annealing
 parser.add_argument('--betas', default=(0.9, 0.999), help='betas for ADAM')
 parser.add_argument('--loss', default='L2', help='loss function')
@@ -156,17 +156,16 @@ class Colorization_model_Reduced(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=opt.lr, betas=opt.betas, weight_decay=1e-5)
-        # T_max should be number of cycles to vary the learning rate, i set to 3 (12,000 steps if batch size is 25)
-        #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-7,
-                                                               #T_max=self.T_max)  # TODO comment out if you don't want to mess with
-        return optimizer
+        # T_max should be number of cycles to vary the learning rate, computed by batch size and epoch before initialization
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, eta_min=1e-7,
+                                                               T_max=self.T_max)  # TODO comment out if you don't want to mess with
+        return [optimizer], [scheduler]
 
     def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
         return self(batch)
 
     def on_train_epoch_end(self):
-        global_step = self.global_step
-        print(self.optimizers().state)
+        global_step = self.global_ste
         for name, param in self.named_parameters():
             self.logger.experiment.add_histogram(name + " grad", param.grad, global_step)
             #self.logger.experiment.add_histogram(name, param, global_step)
@@ -194,20 +193,20 @@ def run_trainer():
         monitor='val_loss_epoch',
         min_delta=0.00,
         check_finite=True,
-        patience=20,
+        patience=15,
         verbose=True,
-        check_on_train_epoch_end=False,
         mode='min'
     )
     '''log learning rate'''
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='epoch')
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        save_top_k=3,
+        monitor='val_loss_epoch',
         save_last=True,
         verbose=True,
         every_n_val_epochs=1
     )
-
 
     max_epochs = 50
     batch_size=128
@@ -235,8 +234,8 @@ def run_trainer():
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=1,  # log every update step for debugging
-                      limit_train_batches=0.1,
-                      limit_val_batches=0.1,
+                      limit_train_batches=1.0,
+                      limit_val_batches=1.0,
                       check_val_every_n_epoch=1,
                       callbacks=[lr_callback, early_stop_call_back, checkpoint_callback]
                       )
@@ -244,5 +243,5 @@ def run_trainer():
 
 
 if __name__ == '__main__':
-    # start trainer
+    #start trainer
     run_trainer()
