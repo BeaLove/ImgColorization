@@ -114,13 +114,12 @@ class Colorization_model_Reduced(pl.LightningModule):
 
 
         if loss == 'RarityWeighted':
-            self.model5 = nn.Upsample(scale_factor=4, mode='bilinear')
-            self.softmax = nn.LogSoftmax(dim=1)
+            self.out_layer = nn.Sequential(nn.Upsample(scale_factor=4, mode='bilinear'), nn.LogSoftmax(dim=1))
+
         elif loss == 'L2':
             self.model5 = nn.Sequential(
                 nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
                 nn.Upsample(scale_factor=4, mode='bilinear'))
-            self.softmax = nn.Softmax(dim=1)
 
     def forward(self, X):
         conv1_2 = self.model1(X)
@@ -128,13 +127,12 @@ class Colorization_model_Reduced(pl.LightningModule):
         conv3_3 = self.model3(conv2_2)
         conv4 = self.model4(conv3_3)
 
-        upsampled = self.model5(conv4)
+        out = self.out_layer(conv4)
 
         '''try returning num bins to loss function'''
         #upsampled = self.model5(conv4_3)
-        out_reg = self.softmax(upsampled)
 
-        return out_reg
+        return out
 
     def training_step(self, batch, batch_idx):
         X, y = batch
