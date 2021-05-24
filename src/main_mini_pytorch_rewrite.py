@@ -147,6 +147,11 @@ class Colorization_model_Reduced(torch.nn.Module):
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
         loss.backward()
+        for name, param in self.named_parameters():
+            #self.logger.experiment.add_histogram(name, param.grad, global_step)
+            print("name", name)
+            print("requires grad", param.requires_grad)
+            print('grad', param.grad)
         self.optimizer.step()
         self.logger.add_scalar('train_loss_step', loss)
         #print('lr', self.scheduler.get_last_lr())
