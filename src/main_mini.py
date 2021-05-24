@@ -213,7 +213,7 @@ def run_trainer():
     T_max = np.floor(100000/batch_size)*max_epochs
     "/logs/default/version_87/checkpoints/epoch=2-step=2345.ckpt"
     model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
-    logger = loggers.TensorBoardLogger(save_dir='logs/')
+    logger = loggers.TensorBoardLogger(save_dir='logs/main_mini')
     if torch.cuda.is_available():
         print("using GPU")
         num_gpus = torch.cuda.device_count()
