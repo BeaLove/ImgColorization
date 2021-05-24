@@ -195,7 +195,7 @@ def run_trainer():
         monitor='val_loss_epoch',
         min_delta=0.00,
         check_finite=True,
-        patience=3,
+        patience=20,
         verbose=True,
         check_on_train_epoch_end=False,
         mode='min'
