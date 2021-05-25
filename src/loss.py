@@ -8,7 +8,7 @@ import numpy as np
 class RarityWeightedLoss(torch.nn.Module):
 
     def __init__(self, weight_mix):
-        super().__init__(RarityWeightedLoss)
+        super().__init__()
         #distribution = pd.read_csv(pixelProbabilitiesCSV, encoding='UTF-8')
         if torch.cuda.is_available():
             device = torch.device('cuda:0')
@@ -43,8 +43,9 @@ class RarityWeightedLoss(torch.nn.Module):
 
         return v.view(batch_size, 1, height, width)
 
-class L2Loss():
+class L2Loss(torch.nn.Module):
     def __init__(self):
+        super().__init__()
         self.loss = torch.nn.MSELoss()
     def __call__(self, prediction, target):
         target = torch.tensor(target, dtype=float, requires_grad=True)
