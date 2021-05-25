@@ -149,6 +149,11 @@ class Colorization_model_Reduced(pl.LightningModule):
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        print("in train batch")
+        for name, param in self.named_parameters():
+            print(name)
+            print(param.requires_grad)
+            print(param.grad)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -175,8 +180,9 @@ class Colorization_model_Reduced(pl.LightningModule):
     def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
         return self(batch)
 
-    def on_train_epoch_end(self):
+    def on_epoch_end(self):
         global_step = self.global_step
+        print("on epoch end")
         for name, param in self.named_parameters():
             self.logger.experiment.add_histogram(name, param.grad, global_step)
             print(name)
