@@ -28,7 +28,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=3e-4, type=float,
                     help='learning rate')  # TODO test initial lr of 1e-2 w cosine annealing
 parser.add_argument('--betas', default=(0.9, 0.999), help='betas for ADAM')
-parser.add_argument('--loss', default='L2', help='loss function')
+parser.add_argument('--loss', default='RarityWeighted', help='loss function')
 opt = parser.parse_args()
 
 """
@@ -115,10 +115,9 @@ class Colorization_model_Reduced(pl.LightningModule):
         self.model3 = nn.Sequential(*model3)
         self.model4 = model4
 
-
         if loss == 'RarityWeighted':
-            self.model5 = nn.Upsample(scale_factor=4, mode='bilinear')
-            self.softmax = nn.LogSoftmax(dim=1)
+            self.out_layer = nn.Sequential(nn.Upsample(scale_factor=4, mode='bilinear'),
+                nn.LogSoftmax(dim=1))
         elif loss == 'L2':
             self.model5 = nn.Sequential(
                 nn.Conv2d(num_bins, 2, kernel_size=1, padding=0, dilation=1, stride=1, bias=False),
@@ -136,11 +135,11 @@ class Colorization_model_Reduced(pl.LightningModule):
         conv3_3 = self.model3(conv2_2)
         conv4 = self.model4(conv3_3)
 
-        upsampled = self.model5(conv4)
+        out_reg = self.out_layer(conv4)
 
         '''try returning num bins to loss function'''
         #upsampled = self.model5(conv4_3)
-        out_reg = self.softmax(upsampled)
+        #out_reg = self.softmax(upsampled)
         # out_reg = self.upsample4(self.softmax(conv8_3))
         # out = self.upsample4(out_reg)
         return out_reg
@@ -216,7 +215,6 @@ def run_trainer():
         verbose=True,
         every_n_val_epochs=1
     )
-
 
     max_epochs = 100
     batch_size=128
