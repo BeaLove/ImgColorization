@@ -39,11 +39,11 @@ weight_mix = np.load('../npy/weight_distribution_mix_with_uniform_distribution_r
 
 
 class Colorization_model_Reduced(pl.LightningModule):
-    def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=len(weight_mix), loss=opt.loss, batch_size=128, T_max=39000):
+    def __init__(self, norm_layer=nn.BatchNorm2d, num_bins=len(weight_mix), loss=opt.loss, batch_size=128, num_workers=2, T_max=39000):
         super(Colorization_model_Reduced, self).__init__()
         self.T_max = T_max
         if loss == 'RarityWeighted':
-            self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=True)
+            self.data_loaders = dl.return_loaders(batch_size=batch_size, num_workers=num_workers, soft_encoding=True)
             self.loss_criterion = RarityWeightedLoss(weight_mix)
         elif loss == 'L2':
             self.data_loaders = dl.return_loaders(batch_size=batch_size, soft_encoding=False)
@@ -150,10 +150,10 @@ class Colorization_model_Reduced(pl.LightningModule):
         loss = self.loss_criterion(output, y)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         print("in train batch")
-        for name, param in self.named_parameters():
+        ''' for name, param in self.named_parameters():
             print(name)
             print(param.requires_grad)
-            print(param.grad)
+            print(param.grad)'''
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -180,7 +180,7 @@ class Colorization_model_Reduced(pl.LightningModule):
     def predict_step(self, batch: int, batch_idx: int, dataloader_idx: int = None):
         return self(batch)
 
-    def on_epoch_end(self):
+    def on_train_epoch_end(self):
         global_step = self.global_step
         print("on epoch end")
         for name, param in self.named_parameters():
@@ -228,7 +228,7 @@ def run_trainer():
     max_epochs = 100
     batch_size=128
     T_max = np.floor(100000/batch_size)*max_epochs
-    model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
+    model = Colorization_model_Reduced(loss=opt.loss, batch_size=batch_size, num_workers=2, T_max=T_max)  # TODO set loss as RarityWeighted or L2, default: L2
     logger = loggers.TensorBoardLogger(save_dir='logs/')
     if torch.cuda.is_available():
         print("using GPU")
