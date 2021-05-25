@@ -149,7 +149,7 @@ class Colorization_model_Reduced(pl.LightningModule):
         output = self.forward(X)
         loss = self.loss_criterion(output, y)
         self.log('train_loss', loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        print("in train batch")
+       # print("in train batch")
         ''' for name, param in self.named_parameters():
             print(name)
             print(param.requires_grad)
