@@ -241,7 +241,7 @@ def run_trainer():
                       gpus=num_gpus,
                       logger=logger,  # use default tensorboard
                       log_every_n_steps=20,  # log every update step for debugging
-                      limit_train_batches=0.1,
+                      limit_train_batches=0.01,
                       limit_val_batches=0.1,
                       check_val_every_n_epoch=1,
                       callbacks=[early_stop_call_back, lr_callback, checkpoint_callback])
